@@ -13,6 +13,7 @@ interface AmountFieldProps {
   size: number;
   label: string;
   inputRef?: Ref<HTMLInputElement>;
+  numberRef?: Ref<HTMLSpanElement>;
   field?: string;
   shake?: string;
   onFocus?: () => void;
@@ -26,6 +27,7 @@ export function AmountField({
   size,
   label,
   inputRef,
+  numberRef,
   field,
   shake = "none",
   onFocus,
@@ -52,6 +54,7 @@ export function AmountField({
         R$
       </span>
       <span
+        ref={numberRef}
         className={styles.number}
         style={{ fontSize: size, transform: shake }}
       >
