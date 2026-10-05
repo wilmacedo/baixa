@@ -1,15 +1,11 @@
 import { randomUUID } from "node:crypto";
-import type { Group, Template } from "../shared/types";
+import type {
+  Group,
+  Template,
+  TemplateInput,
+  TemplatePatch,
+} from "../shared/types";
 import type { Db } from "./db";
-
-export interface TemplateInput {
-  name: string;
-  amountCents: number;
-  dueDay: number;
-  group: Group;
-}
-
-export type TemplatePatch = Partial<TemplateInput & { active: boolean }>;
 
 interface TemplateRow {
   id: string;

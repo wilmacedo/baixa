@@ -1,14 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { MonthKey } from "../shared/months";
-import type { Category, Expense } from "../shared/types";
+import type { Category, Expense, ExpenseInput } from "../shared/types";
 import type { Db } from "./db";
-
-export interface ExpenseInput {
-  description: string;
-  amountCents: number;
-  category: Category;
-  spentOn: string;
-}
 
 interface ExpenseRow {
   id: string;

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { ExpenseInput } from "../shared/types";
 import { type Db, openDatabase } from "./db";
-import { createExpenses, type ExpenseInput } from "./expenses";
+import { createExpenses } from "./expenses";
 
 let db: Db;
 let expenses: ReturnType<typeof createExpenses>;

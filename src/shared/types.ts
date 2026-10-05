@@ -1,3 +1,5 @@
+import type { MonthKey } from "./months";
+
 export const GROUPS = ["fixed", "charges", "cards"] as const;
 export type Group = (typeof GROUPS)[number];
 
@@ -33,4 +35,27 @@ export interface Expense {
   amountCents: number;
   category: Category;
   spentOn: string;
+}
+
+export interface TemplateInput {
+  name: string;
+  amountCents: number;
+  dueDay: number;
+  group: Group;
+}
+
+export type TemplatePatch = Partial<TemplateInput & { active: boolean }>;
+
+export interface ExpenseInput {
+  description: string;
+  amountCents: number;
+  category: Category;
+  spentOn: string;
+}
+
+export interface MonthData {
+  month: MonthKey;
+  templates: Template[];
+  entries: Entry[];
+  expenses: Expense[];
 }
