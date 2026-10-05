@@ -4,6 +4,7 @@ import {
   billsByGroup,
   buildBills,
   nextDue,
+  paymentDate,
   summarize,
 } from "./ledger";
 import type { Entry, Template } from "./types";
@@ -147,5 +148,16 @@ describe("nextDue", () => {
     expect(
       nextDue([bill({ status: "late" }), bill({ status: "paid" })]),
     ).toBeUndefined();
+  });
+});
+
+describe("paymentDate", () => {
+  it("is today for the current and future months", () => {
+    expect(paymentDate("2026-10", 3, today)).toBe("2026-10-05");
+    expect(paymentDate("2026-12", 20, today)).toBe("2026-10-05");
+  });
+
+  it("is the due day for past months", () => {
+    expect(paymentDate("2026-09", 7, today)).toBe("2026-09-07");
   });
 });

@@ -107,3 +107,14 @@ export function nextDue(
   const day = Math.min(...upcoming.map((b) => b.dueDay));
   return { day, bills: upcoming.filter((b) => b.dueDay === day) };
 }
+
+export function paymentDate(
+  month: MonthKey,
+  dueDay: number,
+  today: Today,
+): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return month >= today.month
+    ? `${today.month}-${pad(today.day)}`
+    : `${month}-${pad(dueDay)}`;
+}
