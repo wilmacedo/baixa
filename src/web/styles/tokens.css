@@ -1,0 +1,36 @@
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --paper: oklch(0.972 0.009 85);
+  --paper2: oklch(0.944 0.012 85);
+  --rule: oklch(0.84 0.014 85);
+  --rule2: oklch(0.905 0.011 85);
+  --text: oklch(0.23 0.03 264);
+  --ink: oklch(0.43 0.19 264);
+  --ink-soft: oklch(0.43 0.19 264 / 0.1);
+  --graphite: oklch(0.49 0.015 260);
+  --red: oklch(0.52 0.2 27);
+  --red-soft: oklch(0.52 0.2 27 / 0.09);
+  --hl: oklch(0.93 0.16 106);
+  --hl-text: oklch(0.24 0.04 264);
+  --on-ink: oklch(0.98 0.008 85);
+  --shade: oklch(0.23 0.03 264 / 0.32);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: oklch(0.2 0.032 275);
+  --paper2: oklch(0.235 0.037 275);
+  --rule: oklch(0.4 0.035 275);
+  --rule2: oklch(0.29 0.035 275);
+  --text: oklch(0.95 0.012 270);
+  --ink: oklch(0.84 0.1 255);
+  --ink-soft: oklch(0.84 0.1 255 / 0.13);
+  --graphite: oklch(0.72 0.025 270);
+  --red: oklch(0.75 0.15 25);
+  --red-soft: oklch(0.75 0.15 25 / 0.13);
+  --hl: oklch(0.88 0.15 106);
+  --hl-text: oklch(0.22 0.04 275);
+  --on-ink: oklch(0.2 0.032 275);
+  --shade: oklch(0.12 0.03 275 / 0.6);
+}
