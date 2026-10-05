@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Bill, Totals } from "../../shared/ledger";
 import { formatCents } from "../../shared/money";
 import type { MonthKey } from "../../shared/months";
@@ -6,6 +7,7 @@ import styles from "./MonthSummary.module.css";
 import { Odometer } from "./Odometer";
 
 interface MonthSummaryProps {
+  nav: ReactNode;
   month: MonthKey;
   totals: Totals;
   expenseCount: number;
@@ -21,6 +23,7 @@ const sum = (bills: readonly Bill[]) =>
   bills.reduce((total, bill) => total + bill.amountCents, 0);
 
 export function MonthSummary({
+  nav,
   month,
   totals,
   expenseCount,
@@ -41,6 +44,7 @@ export function MonthSummary({
   return (
     <section aria-label="Resumo do mês" className={styles.summary}>
       <div className={styles.main}>
+        {nav}
         <span className={styles.label}>falta pagar em {name}</span>
         <div
           className={styles.figure}
