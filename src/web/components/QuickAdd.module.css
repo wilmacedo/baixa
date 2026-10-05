@@ -1,0 +1,162 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  animation: enter 380ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 34px;
+}
+
+.title {
+  font:
+    600 10.5px / 1 "Martian Mono",
+    monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.rule {
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+.hint {
+  font:
+    500 10px / 1.3 "Martian Mono",
+    monospace;
+  letter-spacing: 0.04em;
+  text-align: right;
+  color: var(--graphite);
+}
+
+.hint[data-problem="true"] {
+  color: var(--red);
+}
+
+.cancel {
+  height: 34px;
+  padding: 0 10px;
+  font-size: 14px;
+  color: var(--graphite);
+  white-space: nowrap;
+}
+
+.cancel:hover {
+  color: var(--text);
+}
+
+.save {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 5px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-size: 14.5px;
+  white-space: nowrap;
+  font-variation-settings:
+    "wght" 640,
+    "wdth" 104;
+}
+
+.save:hover {
+  background: var(--text);
+}
+
+.amount {
+  margin-top: 14px;
+}
+
+.fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 18px 36px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.description {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.label {
+  font:
+    500 10.5px / 1 "Martian Mono",
+    monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+
+.label[data-problem="true"] {
+  color: var(--red);
+}
+
+.line {
+  position: relative;
+  display: block;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--rule);
+  transition: border-color 160ms;
+}
+
+.line[data-focused="true"] {
+  border-color: var(--ink);
+}
+
+.line input,
+.completion {
+  font-size: 24px;
+  line-height: 1.25;
+  font-variation-settings:
+    "wght" 520,
+    "wdth" 100;
+}
+
+.line input {
+  position: relative;
+  width: 100%;
+}
+
+.line input:focus-visible {
+  outline: none;
+}
+
+.completion {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: pre;
+  pointer-events: none;
+}
+
+.typed {
+  visibility: hidden;
+}
+
+.suggestion {
+  color: var(--graphite);
+  opacity: 0.65;
+}
