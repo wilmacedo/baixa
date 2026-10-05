@@ -1,9 +1,19 @@
 .group {
   display: flex;
   gap: 6px;
+  min-width: 0;
   padding: 4px;
   margin: -4px;
+  border: 0;
   border-radius: 7px;
+}
+
+.legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
 }
 
 .group[data-focused="true"] {

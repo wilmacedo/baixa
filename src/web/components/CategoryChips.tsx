@@ -9,7 +9,7 @@ interface CategoryChipsProps {
   onPick: (category: Category) => void;
   compact?: boolean;
   focused?: boolean;
-  groupRef?: Ref<HTMLDivElement>;
+  groupRef?: Ref<HTMLFieldSetElement>;
   onFocus?: () => void;
 }
 
@@ -23,10 +23,8 @@ export function CategoryChips({
   onFocus,
 }: CategoryChipsProps) {
   return (
-    <div
+    <fieldset
       ref={groupRef}
-      role="group"
-      aria-label="Categoria"
       tabIndex={compact ? undefined : 0}
       data-field="category"
       data-focused={focused}
@@ -34,6 +32,7 @@ export function CategoryChips({
       className={styles.group}
       onFocus={onFocus}
     >
+      <legend className={styles.legend}>Categoria</legend>
       {CATEGORIES.map((category) => {
         const label = CATEGORY_LABELS[category];
         const state =
@@ -65,6 +64,6 @@ export function CategoryChips({
           </button>
         );
       })}
-    </div>
+    </fieldset>
   );
 }
