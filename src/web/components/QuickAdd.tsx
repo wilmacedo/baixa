@@ -97,7 +97,7 @@ export function QuickAdd({
     target.current?.focus();
   };
 
-  const save = () => {
+  const save = (typed: string = description) => {
     const amountCents = parseRaw(raw);
     if (amountCents <= 0) {
       setProblem("amount");
@@ -106,7 +106,7 @@ export function QuickAdd({
       return;
     }
 
-    const resolved = category ?? detectCategory(description, history);
+    const resolved = category ?? detectCategory(typed, history);
     if (!resolved) {
       setProblem("category");
       focusField("category");
@@ -119,9 +119,7 @@ export function QuickAdd({
         : null;
     onSave(
       {
-        description: capitalize(
-          description.trim() || CATEGORY_LABELS[resolved],
-        ),
+        description: capitalize(typed.trim() || CATEGORY_LABELS[resolved]),
         amountCents,
         category: resolved,
         spentOn: date,
@@ -160,7 +158,7 @@ export function QuickAdd({
       const completed = description + completion;
       if (completion) setDescription(completed);
       if (category ?? detectCategory(completed, history)) {
-        window.setTimeout(save, 0);
+        save(completed);
       } else {
         setProblem("category");
         focusField("category");
@@ -249,7 +247,7 @@ export function QuickAdd({
         <button type="button" className={styles.cancel} onClick={onCancel}>
           cancelar
         </button>
-        <button type="button" className={styles.save} onClick={save}>
+        <button type="button" className={styles.save} onClick={() => save()}>
           {editing ? "salvar" : "lançar gasto"}
         </button>
       </div>
