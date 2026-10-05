@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CATEGORIES } from "../shared/types";
 import {
+  billTag,
   CATEGORY_HOTKEYS,
   CATEGORY_LABELS,
   dateLabel,
@@ -60,5 +61,46 @@ describe("categories", () => {
         new RegExp(`^${CATEGORY_HOTKEYS[category]}`),
       );
     }
+  });
+});
+
+describe("billTag", () => {
+  const base = {
+    status: "pending",
+    daysLate: 0,
+    paidAt: null,
+    adjusted: false,
+  } as const;
+
+  it("is empty for a plain pending bill", () => {
+    expect(billTag(base)).toBeNull();
+  });
+
+  it("flags an adjusted amount", () => {
+    expect(billTag({ ...base, adjusted: true })).toBe("ajustado");
+  });
+
+  it("says when a bill is due today", () => {
+    expect(billTag({ ...base, status: "today" })).toBe("vence hoje");
+  });
+
+  it("counts the days late, or just says late", () => {
+    expect(billTag({ ...base, status: "late", daysLate: 1 })).toBe("há 1 dia");
+    expect(billTag({ ...base, status: "late", daysLate: 2 })).toBe("há 2 dias");
+    expect(billTag({ ...base, status: "late" })).toBe("atrasada");
+  });
+
+  it("shows when a bill was paid", () => {
+    expect(billTag({ ...base, status: "paid", paidAt: "2026-10-05" })).toBe(
+      "pago 05/10",
+    );
+    expect(billTag({ ...base, status: "paid" })).toBe("pago");
+  });
+
+  it("gives editing and failure priority", () => {
+    const late = { ...base, status: "late", daysLate: 2 } as const;
+
+    expect(billTag(late, { editing: true })).toBe("editando");
+    expect(billTag(late, { editing: true, failed: true })).toBe("não salvou");
   });
 });

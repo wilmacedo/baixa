@@ -1,4 +1,5 @@
 import { daysBetween, parseIsoDate, weekday } from "../shared/dates";
+import type { Bill } from "../shared/ledger";
 import { type MonthKey, parseMonthKey } from "../shared/months";
 import type { Category, Group } from "../shared/types";
 
@@ -84,4 +85,25 @@ export function dateLabel(iso: string, todayIso: string): string {
         ? "ontem"
         : WEEKDAYS_SHORT[weekday(iso)];
   return `${prefix}, ${day} ${MONTHS_SHORT[month - 1]}`;
+}
+
+export function billTag(
+  bill: Pick<Bill, "status" | "daysLate" | "paidAt" | "adjusted">,
+  state: { editing?: boolean; failed?: boolean } = {},
+): string | null {
+  if (state.failed) return "não salvou";
+  if (state.editing) return "editando";
+
+  switch (bill.status) {
+    case "late":
+      return bill.daysLate > 0
+        ? `há ${plural(bill.daysLate, "dia", "dias")}`
+        : "atrasada";
+    case "paid":
+      return bill.paidAt ? `pago ${paidOn(bill.paidAt)}` : "pago";
+    case "today":
+      return "vence hoje";
+    case "pending":
+      return bill.adjusted ? "ajustado" : null;
+  }
 }
