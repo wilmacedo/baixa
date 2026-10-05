@@ -14,6 +14,7 @@ RUN pnpm build:web \
 
 FROM base AS runtime
 ENV NODE_ENV=production \
+  TZ=America/Sao_Paulo \
   PORT=3000 \
   DATABASE_PATH=/data/baixa.db \
   WEB_ROOT=/app/dist/web
