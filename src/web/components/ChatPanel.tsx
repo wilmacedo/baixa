@@ -1,4 +1,5 @@
 import {
+  type CSSProperties,
   type FormEvent,
   type KeyboardEvent,
   useEffect,
@@ -6,6 +7,7 @@ import {
   useState,
 } from "react";
 import type { ChatState } from "../chat-state";
+import { useShake } from "../use-shake";
 import type { Mode } from "../use-viewport";
 import { ChatMarkdown } from "./ChatMarkdown";
 import styles from "./ChatPanel.module.css";
@@ -18,6 +20,7 @@ const SUGGESTIONS = [
 ];
 
 const MAX_INPUT_HEIGHT = 120;
+const CLOSE_FALLBACK_MS = 400;
 const STICK_TO_BOTTOM = 80;
 
 interface ChatPanelProps {
@@ -41,9 +44,33 @@ export function ChatPanel({
   const log = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const [draft, setDraft] = useState("");
+  const [closing, setClosing] = useState(false);
+  const shake = useShake();
   const busy = state.phase !== "idle";
 
-  useEffect(() => dialog.current?.showModal(), []);
+  const freshness = useRef(new Map<string, boolean>());
+  const mounted = useRef(false);
+  for (const message of state.messages) {
+    if (!freshness.current.has(message.key)) {
+      freshness.current.set(message.key, mounted.current);
+    }
+  }
+  useEffect(() => {
+    mounted.current = true;
+  }, []);
+
+  useEffect(() => {
+    dialog.current?.showModal();
+    input.current?.focus();
+  }, []);
+
+  const requestClose = () => setClosing(true);
+
+  useEffect(() => {
+    if (!closing) return;
+    const timer = window.setTimeout(onClose, CLOSE_FALLBACK_MS);
+    return () => window.clearTimeout(timer);
+  }, [closing, onClose]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll whenever the conversation grows
   useEffect(() => {
@@ -66,23 +93,27 @@ export function ChatPanel({
   const submit = (event?: FormEvent) => {
     event?.preventDefault();
     if (busy) return onStop();
-    if (!draft.trim()) return;
+    if (!draft.trim()) return shake.shake();
     onSend(draft);
     setDraft("");
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (
-      event.key === "Enter" &&
-      !event.shiftKey &&
-      !event.nativeEvent.isComposing
-    ) {
+    if (event.nativeEvent.isComposing) return;
+
+    if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       if (!busy) submit();
+    } else if (event.key === "ArrowUp" && draft === "" && lastAsked) {
+      event.preventDefault();
+      setDraft(lastAsked);
     }
   };
 
   const empty = state.messages.length === 0;
+  const lastAsked = state.messages.findLast((m) => m.role === "user")?.text;
+  const streamingKey =
+    state.phase === "streaming" ? state.messages.at(-1)?.key : undefined;
   const retry = state.error && state.lastQuestion;
 
   return (
@@ -91,12 +122,23 @@ export function ChatPanel({
       aria-label="Assistente"
       className={styles.dialog}
       data-mode={mode}
+      data-closing={closing}
       onClose={onClose}
+      onCancel={(event) => {
+        event.preventDefault();
+        requestClose();
+      }}
       onKeyDown={(event) => {
-        if (event.key === "Escape") onClose();
+        if (event.key === "Escape") {
+          event.preventDefault();
+          requestClose();
+        }
+      }}
+      onAnimationEnd={(event) => {
+        if (closing && event.target === dialog.current) onClose();
       }}
       onClick={(event) => {
-        if (event.target === dialog.current) onClose();
+        if (event.target === dialog.current) requestClose();
       }}
     >
       <div className={styles.panel}>
@@ -112,23 +154,34 @@ export function ChatPanel({
               nova conversa
             </button>
           )}
-          <button type="button" className={styles.action} onClick={onClose}>
+          <button
+            type="button"
+            className={styles.action}
+            onClick={requestClose}
+          >
             fechar
           </button>
         </header>
 
-        <div ref={log} role="log" aria-live="polite" className={styles.log}>
+        <div
+          ref={log}
+          role="log"
+          aria-live="polite"
+          aria-busy={busy}
+          className={styles.log}
+        >
           {empty && (
             <div className={styles.empty}>
               <p className={styles.hello}>
                 Pergunte sobre suas contas, gastos e meses anteriores.
               </p>
               <div className={styles.suggestions}>
-                {SUGGESTIONS.map((suggestion) => (
+                {SUGGESTIONS.map((suggestion, index) => (
                   <button
                     key={suggestion}
                     type="button"
                     className={styles.chip}
+                    style={{ "--i": index } as CSSProperties}
                     disabled={busy}
                     onClick={() => onSend(suggestion)}
                   >
@@ -145,6 +198,8 @@ export function ChatPanel({
                 key={message.key}
                 className={styles.message}
                 data-role={message.role}
+                data-fresh={freshness.current.get(message.key)}
+                data-streaming={message.key === streamingKey}
               >
                 {message.role === "assistant" ? (
                   <ChatMarkdown text={message.text} />
@@ -187,7 +242,7 @@ export function ChatPanel({
             ref={input}
             className={styles.input}
             rows={1}
-            autoFocus
+            style={{ transform: shake.transform }}
             aria-label="Mensagem para o assistente"
             placeholder="Pergunte algo…"
             value={draft}
@@ -203,6 +258,12 @@ export function ChatPanel({
             {busy ? "parar" : "enviar"}
           </button>
         </form>
+        {mode === "desktop" && (
+          <p className={styles.hint}>
+            enter envia · shift enter quebra a linha · ↑ repete a última · esc
+            fecha
+          </p>
+        )}
       </div>
     </dialog>
   );

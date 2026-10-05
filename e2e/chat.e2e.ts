@@ -79,6 +79,44 @@ test.describe("on desktop", () => {
     ).toBeVisible();
   });
 
+  test("opening puts the cursor in the field, an empty Enter sends nothing and the arrow up brings the last question back", async ({
+    page,
+    app,
+  }) => {
+    await page.goto(app.url);
+    await page.getByRole("button", { name: "Abrir assistente" }).click();
+
+    const panel = page.getByRole("dialog", { name: "Assistente" });
+    const field = panel.getByLabel("Mensagem para o assistente");
+    await expect(field).toBeFocused();
+
+    await field.press("Enter");
+    expect(app.chat.questions).toEqual([]);
+
+    await field.fill("quanto sobra?");
+    await field.press("Enter");
+    await expect(panel.locator("strong")).toBeVisible();
+
+    await field.press("ArrowUp");
+    await expect(field).toHaveValue("quanto sobra?");
+  });
+
+  test("closing slides the panel away before removing it and the button comes back", async ({
+    page,
+    app,
+  }) => {
+    await page.goto(app.url);
+    await page.getByRole("button", { name: "Abrir assistente" }).click();
+
+    const panel = page.getByRole("dialog", { name: "Assistente" });
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveAttribute("data-closing", "true");
+    await expect(panel).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: "Abrir assistente" }),
+    ).toBeVisible();
+  });
+
   test("the C key does not type into other screens while the chat is open", async ({
     page,
     app,
