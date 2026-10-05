@@ -259,9 +259,7 @@ export function ChatPanel({
           </button>
         </form>
         {mode === "desktop" && (
-          <p className={styles.hint}>
-            enter envia · shift+enter quebra · ↑ última · esc fecha
-          </p>
+          <p className={styles.hint}>enter envia · ↑ última · esc fecha</p>
         )}
       </div>
     </dialog>
