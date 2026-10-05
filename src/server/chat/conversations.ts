@@ -1,18 +1,14 @@
 import { randomUUID } from "node:crypto";
+import type { ChatMessage } from "../../shared/chat";
 import type { Db } from "../db";
+
+export type { ChatMessage };
 
 export interface Conversation {
   id: string;
   title: string;
   sessionId: string;
   started: boolean;
-  createdAt: string;
-}
-
-export interface ChatMessage {
-  id: number;
-  role: "user" | "assistant";
-  text: string;
   createdAt: string;
 }
 

@@ -1,4 +1,5 @@
 import type { CategorizedExpense } from "../shared/category";
+import type { ChatConversation, ChatMessage } from "../shared/chat";
 import type { MonthKey } from "../shared/months";
 import type {
   Entry,
@@ -42,6 +43,22 @@ async function request<T>(
   if (!res.ok) throw new ApiError(res.status, await errorMessage(res));
   return (res.status === 204 ? undefined : await res.json()) as T;
 }
+
+export const chatApi = {
+  status: () => request<{ available: boolean }>("GET", "/chat/status"),
+
+  conversations: () =>
+    request<ChatConversation[]>("GET", "/chat/conversations"),
+
+  createConversation: () =>
+    request<ChatConversation>("POST", "/chat/conversations"),
+
+  getConversation: (id: string) =>
+    request<{ conversation: ChatConversation; messages: ChatMessage[] }>(
+      "GET",
+      `/chat/conversations/${id}`,
+    ),
+};
 
 export const api = {
   getMonth: (month: MonthKey) => request<MonthData>("GET", `/months/${month}`),

@@ -1,18 +1,8 @@
 import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
+import type { ChatErrorCode, ChatEvent } from "../../shared/chat";
 
-export type ChatErrorCode =
-  | "unavailable"
-  | "auth"
-  | "limit"
-  | "timeout"
-  | "failed";
-
-export type ChatEvent =
-  | { type: "delta"; text: string }
-  | { type: "tool"; name: string }
-  | { type: "done" }
-  | { type: "error"; code: ChatErrorCode; message: string };
+export type { ChatErrorCode, ChatEvent };
 
 export interface ReplyInput {
   prompt: string;
