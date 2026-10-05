@@ -1,0 +1,28 @@
+.display {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--ink);
+  transition: transform 90ms;
+}
+
+.currency {
+  margin-top: 0.3em;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--graphite);
+  font-variation-settings: "wght" 500;
+}
+
+.number {
+  line-height: 0.9;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings:
+    "wght" 780,
+    "wdth" 104;
+}
+
+.ghost {
+  color: var(--rule);
+}
