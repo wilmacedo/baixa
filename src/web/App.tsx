@@ -89,6 +89,7 @@ export function App() {
           quickAdd={quickAdd}
           onOpenQuickAdd={openQuickAdd}
           onCloseQuickAdd={closeQuickAdd}
+          keysEnabled={!helpOpen}
         />
       )}
       {screen === "recurring" && (

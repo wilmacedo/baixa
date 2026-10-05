@@ -15,6 +15,7 @@ import {
   GROUPS,
   type Group,
 } from "../../shared/types";
+import { isBillHidden } from "../bill-visibility";
 import { EditEntry, type EntryEdit } from "../components/EditEntry";
 import { ExpenseColumn } from "../components/ExpenseColumn";
 import { GroupColumn } from "../components/GroupColumn";
@@ -22,9 +23,11 @@ import { MonthNav } from "../components/MonthNav";
 import { MonthSummary } from "../components/MonthSummary";
 import { QuickAdd } from "../components/QuickAdd";
 import { type FlightSource, flyValue } from "../fly-value";
+import { moveColumn, moveFocus } from "../focus-nav";
 import { CATEGORY_LABELS, monthName } from "../format";
 import { heroSize } from "../layout";
 import { newId } from "../new-id";
+import { isEditable } from "../shortcuts";
 import { useMonth } from "../use-month";
 import type { useMonthNavigation } from "../use-month-navigation";
 import { useSettling } from "../use-settling";
@@ -45,6 +48,7 @@ interface MonthScreenProps {
   quickAdd: QuickAddRequest | null;
   onOpenQuickAdd: (request?: QuickAddRequest) => void;
   onCloseQuickAdd: () => void;
+  keysEnabled: boolean;
 }
 
 const EXPENSE_PREFIX = "av:";
@@ -62,6 +66,7 @@ export function MonthScreen({
   quickAdd,
   onOpenQuickAdd,
   onCloseQuickAdd,
+  keysEnabled,
 }: MonthScreenProps) {
   const { month } = navigation;
   const data = useMonth(month, today.month);
@@ -186,6 +191,11 @@ export function MonthScreen({
     );
   };
 
+  const editExpense = (id: string) => {
+    const expense = data.expenses.find((e) => e.id === id);
+    if (expense) onOpenQuickAdd({ editing: expense });
+  };
+
   const deleteExpense = (id: string) => {
     const expense = data.expenses.find((e) => e.id === id);
     if (!expense) return;
@@ -247,6 +257,121 @@ export function MonthScreen({
     onHistoryChanged();
   };
 
+  const navColumns = useMemo(
+    () => [
+      ...GROUPS.map((group) =>
+        groups[group]
+          .filter(
+            (bill) =>
+              !isBillHidden(bill, {
+                showPaid: showPaid[group],
+                settling: settling.settling,
+                editingId,
+              }),
+          )
+          .map((bill) => bill.templateId),
+      ),
+      data.expenses.map((e) => `${EXPENSE_PREFIX}${e.id}`),
+    ],
+    [groups, showPaid, settling.settling, editingId, data.expenses],
+  );
+  const firstId = navColumns.flat()[0] ?? null;
+  const tabbable = focus ? null : firstId;
+  const tabbableExpense = tabbable?.startsWith(EXPENSE_PREFIX)
+    ? tabbable.slice(EXPENSE_PREFIX.length)
+    : null;
+  const tabbableBill = tabbable && !tabbableExpense ? tabbable : null;
+
+  const focusId = (id: string | null) => {
+    setFocus(id);
+    if (!id) return;
+    requestAnimationFrame(() => {
+      const selector = id.startsWith(EXPENSE_PREFIX)
+        ? `[data-av="${id.slice(EXPENSE_PREFIX.length)}"] [data-role="main"]`
+        : `[data-bill="${id}"] [data-role="main"]`;
+      const element = document.querySelector<HTMLElement>(selector);
+      element?.focus({ preventScroll: true });
+      element?.scrollIntoView({ block: "nearest" });
+    });
+  };
+
+  const toggleAllPaid = () => {
+    settling.clear();
+    setShowPaid((current) => {
+      const next = !Object.values(current).some(Boolean);
+      return { fixed: next, charges: next, cards: next };
+    });
+  };
+
+  const keysActive = keysEnabled && !covered;
+  useEffect(() => {
+    if (!keysActive) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || isEditable(event.target)) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      const act = (action: () => void) => {
+        event.preventDefault();
+        action();
+      };
+
+      if (key === "[" || key === "PageUp")
+        return act(() => navigation.goBy(-1));
+      if (key === "]" || key === "PageDown")
+        return act(() => navigation.goBy(1));
+      if (key === "h") return act(navigation.goToCurrent);
+      if (key === "p") return act(toggleAllPaid);
+      if (key === "ArrowDown" || key === "j")
+        return act(() => focusId(moveFocus(navColumns, focus, 1)));
+      if (key === "ArrowUp" || key === "k")
+        return act(() => focusId(moveFocus(navColumns, focus, -1)));
+      if (key === "ArrowRight" || key === "l")
+        return act(() => focusId(moveColumn(navColumns, focus, 1)));
+      if (key === "ArrowLeft")
+        return act(() => focusId(moveColumn(navColumns, focus, -1)));
+      if (!focus) return;
+
+      if (key === "Escape") {
+        return act(() => {
+          setFocus(null);
+          (document.activeElement as HTMLElement | null)?.blur();
+        });
+      }
+
+      if (focus.startsWith(EXPENSE_PREFIX)) {
+        const id = focus.slice(EXPENSE_PREFIX.length);
+        if (key === "Delete" || key === "Backspace") {
+          return act(() => deleteExpense(id));
+        }
+        if (key === "e") return act(() => editExpense(id));
+        return;
+      }
+
+      if (key === " ") return act(() => toggleBill(focus));
+      if (key === "e") return act(() => editBill(focus));
+    };
+
+    const onKeyUp = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (
+        event.key === " " &&
+        target instanceof HTMLElement &&
+        target.dataset.role === "main"
+      ) {
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  });
+
   const columns =
     width >= 1200
       ? "minmax(0, 1.3fr) repeat(3, minmax(0, 1fr))"
@@ -281,7 +406,7 @@ export function MonthScreen({
             next={nextDue(bills)}
             loading={loading}
             width={width}
-            onShowLate={() => setFocus(lateBills[0]?.templateId ?? null)}
+            onShowLate={() => focusId(lateBills[0]?.templateId ?? null)}
           />
         </div>
         {editingBill && (
@@ -329,7 +454,7 @@ export function MonthScreen({
             editingId={editingId}
             focusedId={focusedBill}
             failedIds={data.failedEntries}
-            tabbableId={null}
+            tabbableId={tabbableBill}
             dimmed={covered}
             onToggleShowPaid={(g) => {
               settling.clear();
@@ -347,12 +472,9 @@ export function MonthScreen({
           loading={loading}
           focusedId={focusedExpense}
           flashId={flashId}
-          tabbableId={null}
+          tabbableId={tabbableExpense}
           onNew={() => onOpenQuickAdd()}
-          onEdit={(id) => {
-            const expense = data.expenses.find((e) => e.id === id);
-            if (expense) onOpenQuickAdd({ editing: expense });
-          }}
+          onEdit={editExpense}
           onDelete={deleteExpense}
           onFocus={(id) => setFocus(`${EXPENSE_PREFIX}${id}`)}
         />
