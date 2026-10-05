@@ -1,10 +1,6 @@
-import type { ChangeEvent, KeyboardEvent, Ref } from "react";
-import {
-  displayRaw,
-  ghostCents,
-  pasteText,
-  typeKey,
-} from "../../shared/amount-input";
+import type { Ref } from "react";
+import { displayRaw, ghostCents } from "../../shared/amount-input";
+import { amountHandlers } from "../amount-handlers";
 import styles from "./AmountField.module.css";
 
 interface AmountFieldProps {
@@ -19,8 +15,6 @@ interface AmountFieldProps {
   onFocus?: () => void;
 }
 
-const AMOUNT_KEY = /^(\d|,|\.|Backspace)$/;
-
 export function AmountField({
   raw,
   onChange,
@@ -34,15 +28,7 @@ export function AmountField({
 }: AmountFieldProps) {
   const display = displayRaw(raw);
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.metaKey || event.ctrlKey || event.altKey) return;
-    if (!AMOUNT_KEY.test(event.key)) return;
-    event.preventDefault();
-    onChange(typeKey(raw, event.key));
-  };
-
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) =>
-    onChange(pasteText(event.target.value));
+  const handlers = amountHandlers(raw, onChange);
 
   return (
     <label className={styles.field}>
@@ -71,8 +57,8 @@ export function AmountField({
             size={1}
             placeholder="0"
             value={display}
-            onKeyDown={handleKeyDown}
-            onChange={handleChange}
+            onKeyDown={handlers.onKeyDown}
+            onChange={handlers.onChange}
             onFocus={onFocus}
           />
         </span>
