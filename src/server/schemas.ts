@@ -15,3 +15,8 @@ export const templateInput = z.object({
 export const templatePatch = templateInput
   .extend({ active: z.boolean() })
   .partial();
+
+export const entryInput = z.object({
+  amountCents,
+  paidAt: z.iso.date().nullable(),
+});
