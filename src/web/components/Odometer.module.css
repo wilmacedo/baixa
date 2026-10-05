@@ -1,0 +1,27 @@
+.odometer {
+  display: inline-flex;
+  align-items: flex-start;
+  font-variant-numeric: tabular-nums;
+}
+
+.slot {
+  display: inline-block;
+  height: 1em;
+  overflow: hidden;
+  line-height: 1em;
+}
+
+.strip {
+  display: flex;
+  flex-direction: column;
+  transition: transform 760ms cubic-bezier(0.2, 0.75, 0.15, 1);
+}
+
+.digit {
+  height: 1em;
+  line-height: 1em;
+}
+
+.separator {
+  line-height: 1em;
+}
