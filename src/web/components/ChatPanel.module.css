@@ -289,7 +289,12 @@
   min-height: 44px;
   max-height: 120px;
   padding: 11px 2px 9px;
+  border: 0;
   border-bottom: 2px solid var(--rule);
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   font-size: 15.5px;
   line-height: 1.35;
   resize: none;
