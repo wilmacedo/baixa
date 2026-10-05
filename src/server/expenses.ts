@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { CategorizedExpense } from "../shared/category";
 import type { MonthKey } from "../shared/months";
 import type { Category, Expense, ExpenseInput } from "../shared/types";
 import type { Db } from "./db";
@@ -38,6 +39,12 @@ export function createExpenses(db: Db) {
      WHERE id = @id`,
   );
   const remove = db.prepare("DELETE FROM expenses WHERE id = ?");
+  const selectHistory = db.prepare(
+    `SELECT description, category FROM (
+       SELECT description, category, spent_on, rowid AS position FROM expenses
+       ORDER BY spent_on DESC, rowid DESC LIMIT ?
+     ) ORDER BY spent_on, position`,
+  );
 
   const get = (id: string): Expense | undefined => {
     const row = selectOne.get(id) as ExpenseRow | undefined;
@@ -57,6 +64,9 @@ export function createExpenses(db: Db) {
       (selectMonth.all(month) as ExpenseRow[]).map(toExpense),
 
     get,
+
+    history: (limit: number): CategorizedExpense[] =>
+      selectHistory.all(limit) as CategorizedExpense[],
 
     create(input: ExpenseInput): Expense {
       const id = randomUUID();

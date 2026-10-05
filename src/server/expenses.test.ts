@@ -88,4 +88,25 @@ describe("expenses", () => {
     expect(expenses.get(created.id)).toBeUndefined();
     expect(expenses.delete(created.id)).toBe(false);
   });
+
+  it("returns the description history oldest first, limited to the latest rows", () => {
+    expenses.create({ ...lunch, description: "Old", spentOn: "2026-08-01" });
+    expenses.create({
+      ...lunch,
+      description: "Middle",
+      spentOn: "2026-09-01",
+      category: "health",
+    });
+    expenses.create({ ...lunch, description: "New", spentOn: "2026-10-01" });
+
+    expect(expenses.history(2)).toEqual([
+      { description: "Middle", category: "health" },
+      { description: "New", category: "leisure" },
+    ]);
+    expect(expenses.history(10).map((e) => e.description)).toEqual([
+      "Old",
+      "Middle",
+      "New",
+    ]);
+  });
 });
