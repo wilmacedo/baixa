@@ -1,0 +1,139 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  animation: enter 380ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 34px;
+}
+
+.tag {
+  font:
+    600 10.5px / 1 "Martian Mono",
+    monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.name {
+  font-size: 22px;
+  line-height: 1;
+  white-space: nowrap;
+  font-variation-settings:
+    "wght" 560,
+    "wdth" 96;
+}
+
+.meta {
+  font:
+    500 10.5px / 1 "Martian Mono",
+    monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--graphite);
+  white-space: nowrap;
+}
+
+.rule {
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+.hint {
+  font:
+    500 10px / 1 "Martian Mono",
+    monospace;
+  letter-spacing: 0.04em;
+  color: var(--graphite);
+  white-space: nowrap;
+}
+
+.amount {
+  margin-top: 14px;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 26px;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+}
+
+.default {
+  font-size: 14.5px;
+  color: var(--graphite);
+  font-variation-settings: "wght" 440;
+}
+
+.diff {
+  font-variation-settings: "wght" 640;
+}
+
+.reset {
+  font-size: 14px;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.apply {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.apply input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--ink);
+}
+
+.grow {
+  flex: 1;
+}
+
+.cancel {
+  height: 34px;
+  padding: 0 12px;
+  font-size: 14px;
+  color: var(--graphite);
+}
+
+.cancel:hover {
+  color: var(--text);
+}
+
+.save {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 5px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-size: 14.5px;
+  font-variation-settings:
+    "wght" 640,
+    "wdth" 104;
+}
+
+.save:hover {
+  background: var(--text);
+}
