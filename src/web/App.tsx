@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
 import styles from "./App.module.css";
+import { BottomBar } from "./components/BottomBar";
 import { Header, type Screen } from "./components/Header";
+import { MobileHeader } from "./components/MobileHeader";
 import { ShortcutsHelp } from "./components/ShortcutsHelp";
 import { Toast } from "./components/Toast";
 import { MonthScreen, type QuickAddRequest } from "./screens/MonthScreen";
@@ -18,7 +20,7 @@ import { useViewport } from "./use-viewport";
 export function App() {
   const today = useToday();
   const { theme, toggle } = useTheme();
-  const { width } = useViewport();
+  const { width, mode } = useViewport();
   const navigation = useMonthNavigation(today.month);
   const [screen, setScreen] = useState<Screen>("month");
   const toast = useToast();
@@ -67,17 +69,30 @@ export function App() {
 
   return (
     <div className={styles.app}>
-      <span aria-hidden="true" className={styles.margin} />
-      <Header
-        screen={screen}
-        today={today}
-        wide={width >= 1180}
-        themeName={theme === "dark" ? "carbono" : "folha"}
-        onScreen={setScreen}
-        onToggleTheme={toggle}
-        onHelp={() => setHelpOpen(true)}
-        onNewExpense={() => openQuickAdd()}
-      />
+      {mode === "desktop" ? (
+        <>
+          <span aria-hidden="true" className={styles.margin} />
+          <Header
+            screen={screen}
+            today={today}
+            wide={width >= 1180}
+            themeName={theme === "dark" ? "carbono" : "folha"}
+            onScreen={setScreen}
+            onToggleTheme={toggle}
+            onHelp={() => setHelpOpen(true)}
+            onNewExpense={() => openQuickAdd()}
+          />
+        </>
+      ) : (
+        <MobileHeader
+          month={screen === "month" ? navigation.month : null}
+          canGoBack={navigation.canGoBack}
+          slide={navigation.style}
+          onPrevious={() => navigation.goBy(-1)}
+          onNext={() => navigation.goBy(1)}
+          onToggleTheme={toggle}
+        />
+      )}
       {screen === "month" && (
         <MonthScreen
           navigation={navigation}
@@ -90,13 +105,25 @@ export function App() {
           onOpenQuickAdd={openQuickAdd}
           onCloseQuickAdd={closeQuickAdd}
           keysEnabled={!helpOpen}
+          mode={mode}
         />
       )}
       {screen === "recurring" && (
         <RecurringScreen today={today} width={width} announce={announce} />
       )}
+      {mode === "mobile" && (
+        <BottomBar
+          screen={screen}
+          onScreen={setScreen}
+          onNewExpense={() => openQuickAdd()}
+        />
+      )}
       {helpOpen && <ShortcutsHelp onClose={() => setHelpOpen(false)} />}
-      <Toast toast={toast.toast} onUndo={performUndo} />
+      <Toast
+        toast={toast.toast}
+        compact={mode === "mobile"}
+        onUndo={performUndo}
+      />
     </div>
   );
 }

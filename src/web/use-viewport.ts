@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 
 const MOBILE_BREAKPOINT = 760;
 
-export const modeFor = (width: number) =>
+export type Mode = "mobile" | "desktop";
+
+export const modeFor = (width: number): Mode =>
   width < MOBILE_BREAKPOINT ? "mobile" : "desktop";
 
 export function useViewport() {

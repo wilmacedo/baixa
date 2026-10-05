@@ -16,12 +16,18 @@ import {
   type Group,
 } from "../../shared/types";
 import { isBillHidden } from "../bill-visibility";
+import { DateList } from "../components/DateList";
 import { EditEntry } from "../components/EditEntry";
+import { EditEntrySheet } from "../components/EditEntrySheet";
 import { ExpenseColumn } from "../components/ExpenseColumn";
 import { GroupColumn } from "../components/GroupColumn";
+import { MobileSummary } from "../components/MobileSummary";
 import { MonthNav } from "../components/MonthNav";
 import { MonthSummary } from "../components/MonthSummary";
 import { QuickAdd } from "../components/QuickAdd";
+import { QuickAddSheet } from "../components/QuickAddSheet";
+import { SegmentedControl } from "../components/SegmentedControl";
+import { bucketBills } from "../date-buckets";
 import { type FlightSource, flyValue } from "../fly-value";
 import { moveColumn, moveFocus } from "../focus-nav";
 import { CATEGORY_LABELS, monthName } from "../format";
@@ -50,6 +56,7 @@ interface MonthScreenProps {
   onOpenQuickAdd: (request?: QuickAddRequest) => void;
   onCloseQuickAdd: () => void;
   keysEnabled: boolean;
+  mode: "desktop" | "mobile";
 }
 
 const EXPENSE_PREFIX = "av:";
@@ -68,6 +75,7 @@ export function MonthScreen({
   onOpenQuickAdd,
   onCloseQuickAdd,
   keysEnabled,
+  mode,
 }: MonthScreenProps) {
   const { month } = navigation;
   const data = useMonth(month, today.month);
@@ -101,6 +109,7 @@ export function MonthScreen({
   });
   const [focus, setFocus] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [view, setView] = useState<"date" | "group">("date");
   const [flashId, setFlashId] = useState<string | null>(null);
   const flashTimer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
@@ -378,7 +387,7 @@ export function MonthScreen({
       ? "minmax(0, 1.3fr) repeat(3, minmax(0, 1fr))"
       : "repeat(auto-fit, minmax(260px, 1fr))";
 
-  return (
+  const desktopView = (
     <div className={styles.screen}>
       <div className={styles.panels}>
         <div
@@ -482,4 +491,130 @@ export function MonthScreen({
       </div>
     </div>
   );
+
+  const hiddenIds = new Set(
+    bills
+      .filter((bill) =>
+        isBillHidden(bill, {
+          showPaid: showPaid[bill.group],
+          settling: settling.settling,
+          editingId,
+        }),
+      )
+      .map((bill) => bill.templateId),
+  );
+  const anyPaidShown = Object.values(showPaid).some(Boolean);
+
+  const mobileView = (
+    <div className={styles.screen}>
+      <MobileSummary
+        month={month}
+        totals={totals}
+        expenseCents={expenseCents}
+        lateBills={lateBills}
+        loading={loading}
+        width={width}
+      />
+      <div className={styles.toolbar}>
+        <SegmentedControl
+          label="Organizar"
+          value={view}
+          onChange={setView}
+          options={[
+            { value: "date", label: "por data" },
+            { value: "group", label: "por grupo" },
+          ]}
+        />
+        <button
+          type="button"
+          className={styles.paidToggle}
+          aria-pressed={anyPaidShown}
+          onClick={toggleAllPaid}
+        >
+          {anyPaidShown ? "ocultar pagas" : "mostrar pagas"}
+        </button>
+      </div>
+      <div className={styles.mobileLedger} style={navigation.style}>
+        {view === "date" ? (
+          <DateList
+            month={month}
+            buckets={bucketBills(bills, month, today)}
+            hiddenIds={hiddenIds}
+            editingId={editingId}
+            focusedId={focusedBill}
+            failedIds={data.failedEntries}
+            tabbableId={tabbableBill}
+            paidSummary={`${totals.paidCount} pagas · ${formatCents(totals.paidCents)}`}
+            loading={loading}
+            onToggle={toggleBill}
+            onEdit={editBill}
+            onFocus={setFocus}
+          />
+        ) : (
+          GROUPS.map((group) => (
+            <GroupColumn
+              key={group}
+              compact
+              group={group}
+              bills={groups[group]}
+              today={today}
+              isCurrentMonth={isCurrentMonth}
+              showPaid={showPaid[group]}
+              settling={settling.settling}
+              editingId={editingId}
+              focusedId={focusedBill}
+              failedIds={data.failedEntries}
+              tabbableId={tabbableBill}
+              onToggleShowPaid={(g) => {
+                settling.clear();
+                setShowPaid((current) => ({ ...current, [g]: !current[g] }));
+              }}
+              onHover={settling.onHover}
+              onToggle={toggleBill}
+              onEdit={editBill}
+              onFocus={setFocus}
+            />
+          ))
+        )}
+        <ExpenseColumn
+          compact
+          month={month}
+          expenses={data.expenses}
+          loading={loading}
+          focusedId={focusedExpense}
+          flashId={flashId}
+          tabbableId={tabbableExpense}
+          onNew={() => onOpenQuickAdd()}
+          onEdit={editExpense}
+          onDelete={deleteExpense}
+          onFocus={(id) => setFocus(`${EXPENSE_PREFIX}${id}`)}
+        />
+      </div>
+      {quickAdd && (
+        <QuickAddSheet
+          key={quickAdd.editing?.id ?? "new"}
+          today={today}
+          width={width}
+          history={history}
+          initialRaw={quickAdd.initialRaw}
+          editing={quickAdd.editing}
+          onSave={(input, id) => saveExpense(input, null, id)}
+          onCancel={onCloseQuickAdd}
+        />
+      )}
+      {editingBill && (
+        <EditEntrySheet
+          key={editingBill.templateId}
+          bill={editingBill}
+          month={month}
+          today={today}
+          width={width}
+          onSave={saveBillEdit}
+          onCancel={closeEdit}
+        />
+      )}
+    </div>
+  );
+
+  return mode === "mobile" ? mobileView : desktopView;
 }
