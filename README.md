@@ -45,14 +45,13 @@ pnpm lint && pnpm typecheck && pnpm test
 
 ## Deployment
 
-The app ships as a single container. There is no login, so keep it reachable only from a network you trust. On a Tailscale tailnet:
+The app ships as a single container. There is no login, so keep it reachable only from a network you trust:
 
 ```sh
 docker compose up -d --build
-tailscale serve --bg 3000
 ```
 
-The container listens on `127.0.0.1:3000`, and `tailscale serve` publishes it over HTTPS to your tailnet only. Do not use `tailscale funnel`, which would expose it to the internet.
+The container publishes port `3000` on all host interfaces, so it is reachable from the LAN and, on a machine running Tailscale, from the tailnet at `http://<host>:3000`. Do not forward the port on your router or use `tailscale funnel`, which would expose it to the internet.
 
 The data lives in the `baixa-data` Docker volume, in a SQLite file at `/data/baixa.db`.
 
