@@ -17,7 +17,8 @@
     "format": "biome check --write",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
-    "seed": "tsx scripts/seed-demo.ts"
+    "seed": "tsx scripts/seed-demo.ts",
+    "backup": "tsx scripts/backup.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
