@@ -1,0 +1,15 @@
+.git
+.github
+node_modules
+dist
+data
+coverage
+playwright-report
+test-results
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.csv
+.env
+.env.*
