@@ -3,6 +3,7 @@ import { type Bill, summarize } from "../../shared/ledger";
 import { formatCents } from "../../shared/money";
 import type { Today } from "../../shared/months";
 import type { Group } from "../../shared/types";
+import { isBillHidden } from "../bill-visibility";
 import { GROUP_LABELS, plural, todayMarker } from "../format";
 import { BillRow } from "./BillRow";
 import styles from "./GroupColumn.module.css";
@@ -58,10 +59,7 @@ export function GroupColumn({
   const totals = summarize(bills);
 
   const isHidden = (bill: Bill) =>
-    bill.status === "paid" &&
-    !showPaid &&
-    !settling.has(bill.templateId) &&
-    editingId !== bill.templateId;
+    isBillHidden(bill, { showPaid, settling, editingId });
 
   const visible = bills.filter((bill) => !isHidden(bill));
   const firstAfterToday = visible.find((bill) => bill.dueDay > today.day);
