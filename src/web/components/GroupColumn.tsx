@@ -24,6 +24,7 @@ interface GroupColumnProps {
   compact?: boolean;
   dimmed?: boolean;
   loading?: boolean;
+  unavailable?: boolean;
   onToggleShowPaid: (group: Group) => void;
   onHover: (group: Group, hovering: boolean) => void;
   onToggle: (templateId: string) => void;
@@ -52,6 +53,7 @@ export function GroupColumn({
   compact = false,
   dimmed = false,
   loading = false,
+  unavailable = false,
   onToggleShowPaid,
   onHover,
   onToggle,
@@ -114,7 +116,7 @@ export function GroupColumn({
           <Odometer cents={totals.pendingCents} delay={120} />
         </span>
         <span className={styles.summary} data-late={totals.lateCount > 0}>
-          {loading ? "" : summary}
+          {unavailable ? "" : summary}
         </span>
       </header>
 
@@ -144,7 +146,7 @@ export function GroupColumn({
         {markerAtEnd && <TodayMarker today={today} />}
       </ul>
 
-      {!loading &&
+      {!unavailable &&
         totals.pendingCount === 0 &&
         !showPaid &&
         visible.length === 0 && (

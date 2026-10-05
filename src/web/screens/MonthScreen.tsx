@@ -19,6 +19,7 @@ import { isBillHidden } from "../bill-visibility";
 import { DateList } from "../components/DateList";
 import { EditEntry } from "../components/EditEntry";
 import { EditEntrySheet } from "../components/EditEntrySheet";
+import { ErrorBanner } from "../components/ErrorBanner";
 import { ExpenseColumn } from "../components/ExpenseColumn";
 import { GroupColumn } from "../components/GroupColumn";
 import { MobileSummary } from "../components/MobileSummary";
@@ -80,6 +81,7 @@ export function MonthScreen({
   const { month } = navigation;
   const data = useMonth(month, today.month);
   const loading = data.status === "loading";
+  const unavailable = data.status !== "ready";
   const isCurrentMonth = month === today.month;
 
   const bills = useMemo(
@@ -183,7 +185,11 @@ export function MonthScreen({
     if (paidAt && !bill.paidAt) settling.hold(bill.templateId, bill.group);
     data.saveEntry({ ...previous, amountCents: edit.amountCents, paidAt });
     if (edit.applyToTemplate) {
-      data.updateTemplate(bill.templateId, { amountCents: edit.amountCents });
+      data
+        .updateTemplate(bill.templateId, { amountCents: edit.amountCents })
+        .then((updated) => {
+          if (!updated) announce("Não foi possível atualizar o valor padrão.");
+        });
     }
     closeEdit();
 
@@ -210,7 +216,10 @@ export function MonthScreen({
     const expense = data.expenses.find((e) => e.id === id);
     if (!expense) return;
 
-    data.deleteExpense(id);
+    data.deleteExpense(id).then((deleted) => {
+      if (!deleted)
+        announce("Não foi possível excluir o gasto. Tente de novo.");
+    });
     announce(`${expense.description} excluído`, () =>
       data.addExpense(toInput(expense), expense.id),
     );
@@ -245,7 +254,11 @@ export function MonthScreen({
 
     if (editingId) {
       const previous = data.expenses.find((e) => e.id === editingId);
-      await data.replaceExpense(editingId, input);
+      const replaced = await data.replaceExpense(editingId, input);
+      if (!replaced) {
+        announce("Não foi possível salvar o gasto. Tente de novo.");
+        return;
+      }
       flash(editingId);
       announce(
         summary,
@@ -257,7 +270,10 @@ export function MonthScreen({
 
     const id = newId();
     const created = await data.addExpense(input, id);
-    if (!created) return;
+    if (!created) {
+      announce("Não foi possível lançar o gasto. Tente de novo.");
+      return;
+    }
 
     const targetMonth = input.spentOn.slice(0, 7);
     if (targetMonth === month) flyToRow(id, flight);
@@ -382,6 +398,29 @@ export function MonthScreen({
     };
   });
 
+  const failedNames = data.failedEntries
+    .map((id) => data.templates.find((t) => t.id === id)?.name)
+    .filter(Boolean)
+    .join(", ");
+  const banner =
+    data.status === "error" ? (
+      <ErrorBanner
+        compact={mode === "mobile"}
+        label="sem conexão"
+        message={`Não foi possível carregar ${monthName(month)}. Nada se perdeu.`}
+        action="tentar de novo"
+        onAction={data.reload}
+      />
+    ) : data.failedEntries.length > 0 ? (
+      <ErrorBanner
+        compact={mode === "mobile"}
+        label="não salvou"
+        message={`A baixa de ${failedNames} não foi gravada. Nada mudou.`}
+        action="entendi"
+        onAction={data.dismissFailures}
+      />
+    ) : null;
+
   const columns =
     width >= 1200
       ? "minmax(0, 1.3fr) repeat(3, minmax(0, 1fr))"
@@ -389,6 +428,7 @@ export function MonthScreen({
 
   const desktopView = (
     <div className={styles.screen}>
+      {banner}
       <div className={styles.panels}>
         <div
           className={styles.panel}
@@ -414,7 +454,7 @@ export function MonthScreen({
             expenseCents={expenseCents}
             lateBills={lateBills}
             next={nextDue(bills)}
-            loading={loading}
+            loading={unavailable}
             width={width}
             onShowLate={() => focusId(lateBills[0]?.templateId ?? null)}
           />
@@ -467,6 +507,7 @@ export function MonthScreen({
             tabbableId={tabbableBill}
             dimmed={covered}
             loading={loading}
+            unavailable={unavailable}
             onToggleShowPaid={(g) => {
               settling.clear();
               setShowPaid((current) => ({ ...current, [g]: !current[g] }));
@@ -480,7 +521,7 @@ export function MonthScreen({
         <ExpenseColumn
           month={month}
           expenses={data.expenses}
-          loading={loading}
+          loading={unavailable}
           focusedId={focusedExpense}
           flashId={flashId}
           tabbableId={tabbableExpense}
@@ -508,12 +549,13 @@ export function MonthScreen({
 
   const mobileView = (
     <div className={styles.screen}>
+      {banner}
       <MobileSummary
         month={month}
         totals={totals}
         expenseCents={expenseCents}
         lateBills={lateBills}
-        loading={loading}
+        loading={unavailable}
         width={width}
       />
       <div className={styles.toolbar}>
@@ -547,6 +589,7 @@ export function MonthScreen({
             tabbableId={tabbableBill}
             paidSummary={`${totals.paidCount} pagas · ${formatCents(totals.paidCents)}`}
             loading={loading}
+            unavailable={unavailable}
             onToggle={toggleBill}
             onEdit={editBill}
             onFocus={setFocus}
@@ -557,6 +600,7 @@ export function MonthScreen({
               key={group}
               compact
               loading={loading}
+              unavailable={unavailable}
               group={group}
               bills={groups[group]}
               today={today}
@@ -582,7 +626,7 @@ export function MonthScreen({
           compact
           month={month}
           expenses={data.expenses}
-          loading={loading}
+          loading={unavailable}
           focusedId={focusedExpense}
           flashId={flashId}
           tabbableId={tabbableExpense}

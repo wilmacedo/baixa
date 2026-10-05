@@ -7,6 +7,7 @@ import {
   type Template,
   type TemplateInput,
 } from "../../shared/types";
+import { ErrorBanner } from "../components/ErrorBanner";
 import { Odometer } from "../components/Odometer";
 import { Switch } from "../components/Switch";
 import { TemplateForm } from "../components/TemplateForm";
@@ -45,7 +46,10 @@ export function RecurringScreen({
 
     if (target && "id" in target) {
       const previous = store.templates.find((t) => t.id === target.id);
-      await store.update(target.id, input);
+      if (!(await store.update(target.id, input))) {
+        announce("Não foi possível salvar a conta. Tente de novo.");
+        return;
+      }
       announce(
         `${input.name} salva · vale a partir de ${month}`,
         previous &&
@@ -61,12 +65,19 @@ export function RecurringScreen({
     }
 
     const created = await store.create(input);
-    if (created) announce(`${input.name} criada · vale a partir de ${month}`);
+    announce(
+      created
+        ? `${input.name} criada · vale a partir de ${month}`
+        : "Não foi possível criar a conta. Tente de novo.",
+    );
   };
 
   const toggle = (template: Template) => {
     const next = !template.active;
-    store.update(template.id, { active: next });
+    store.update(template.id, { active: next }).then((updated) => {
+      if (!updated)
+        announce("Não foi possível alterar a conta. Tente de novo.");
+    });
     announce(
       next
         ? `${template.name} ativada de novo`
@@ -77,6 +88,14 @@ export function RecurringScreen({
 
   return (
     <div className={styles.screen}>
+      {store.status === "error" && (
+        <ErrorBanner
+          label="sem conexão"
+          message="Não foi possível carregar as contas recorrentes. Nada se perdeu."
+          action="tentar de novo"
+          onAction={store.reload}
+        />
+      )}
       <section aria-label="Contas recorrentes" className={styles.hero}>
         <div className={styles.heading}>
           <h1 className={styles.title}>contas recorrentes</h1>

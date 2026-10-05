@@ -16,6 +16,7 @@ interface DateListProps {
   tabbableId: string | null;
   paidSummary: string;
   loading: boolean;
+  unavailable: boolean;
   onToggle: (templateId: string) => void;
   onEdit: (templateId: string) => void;
   onFocus: (templateId: string) => void;
@@ -31,6 +32,7 @@ export function DateList({
   tabbableId,
   paidSummary,
   loading,
+  unavailable,
   onToggle,
   onEdit,
   onFocus,
@@ -81,7 +83,7 @@ export function DateList({
           </ul>
         </div>
       ))}
-      {empty && !loading && (
+      {empty && !unavailable && (
         <div className={styles.empty}>
           <span className={styles.emptyTitle}>
             Nada pendente em {monthName(month)}.
