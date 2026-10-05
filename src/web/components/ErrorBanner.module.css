@@ -1,0 +1,43 @@
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  padding: 12px 40px 12px 48px;
+  border-bottom: 1.5px solid var(--red);
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.banner[data-compact="true"] {
+  padding: 12px 20px;
+}
+
+.tag {
+  padding: 4px 6px 3px;
+  border-radius: 3px;
+  background: var(--red);
+  color: var(--on-ink);
+  font:
+    600 10px / 1 "Martian Mono",
+    monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.message {
+  flex: 1;
+  min-width: 200px;
+  font-size: 14.5px;
+  text-wrap: pretty;
+  font-variation-settings: "wght" 520;
+}
+
+.action {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1.5px var(--red);
+  font-size: 14px;
+  font-variation-settings: "wght" 640;
+}
