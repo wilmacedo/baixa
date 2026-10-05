@@ -1,0 +1,52 @@
+.bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr;
+  gap: 8px;
+  padding: 10px 12px max(10px, env(safe-area-inset-bottom));
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  background: var(--paper);
+  flex: none;
+}
+
+.tab {
+  height: 52px;
+  border-radius: 6px;
+  font-size: 14.5px;
+  text-align: center;
+  color: var(--graphite);
+  font-variation-settings:
+    "wght" 460,
+    "wdth" 100;
+}
+
+.tab[aria-current="page"] {
+  color: var(--text);
+  font-variation-settings:
+    "wght" 680,
+    "wdth" 104;
+}
+
+.add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 52px;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-size: 16px;
+  font-variation-settings:
+    "wght" 700,
+    "wdth" 106;
+}
+
+.plus {
+  font-size: 22px;
+  line-height: 1;
+  font-variation-settings: "wght" 400;
+}
