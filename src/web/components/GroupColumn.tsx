@@ -147,6 +147,7 @@ export function GroupColumn({
       </ul>
 
       {!unavailable &&
+        bills.length > 0 &&
         totals.pendingCount === 0 &&
         !showPaid &&
         visible.length === 0 && (
