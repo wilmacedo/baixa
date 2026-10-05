@@ -15,13 +15,14 @@ import {
   GROUPS,
   type Group,
 } from "../../shared/types";
+import { EditEntry, type EntryEdit } from "../components/EditEntry";
 import { ExpenseColumn } from "../components/ExpenseColumn";
 import { GroupColumn } from "../components/GroupColumn";
 import { MonthNav } from "../components/MonthNav";
 import { MonthSummary } from "../components/MonthSummary";
 import { QuickAdd } from "../components/QuickAdd";
 import { type FlightSource, flyValue } from "../fly-value";
-import { CATEGORY_LABELS } from "../format";
+import { CATEGORY_LABELS, monthName } from "../format";
 import { heroSize } from "../layout";
 import { newId } from "../new-id";
 import { useMonth } from "../use-month";
@@ -48,7 +49,6 @@ interface MonthScreenProps {
 
 const EXPENSE_PREFIX = "av:";
 const FLASH_MS = 1300;
-const noop = () => {};
 
 const toInput = ({ id: _id, ...input }: Expense): ExpenseInput => input;
 
@@ -80,7 +80,13 @@ export function MonthScreen({
   const settling = useSettling();
   const clearSettling = settling.clear;
   // biome-ignore lint/correctness/useExhaustiveDependencies: the held rows must be dropped whenever another month is shown
-  useEffect(() => clearSettling(), [month, clearSettling]);
+  useEffect(() => {
+    clearSettling();
+    setEditingId(null);
+  }, [month, clearSettling]);
+  useEffect(() => {
+    if (quickAdd) setEditingId(null);
+  }, [quickAdd]);
 
   const [showPaid, setShowPaid] = useState<Record<Group, boolean>>({
     fixed: false,
@@ -88,6 +94,7 @@ export function MonthScreen({
     cards: false,
   });
   const [focus, setFocus] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [flashId, setFlashId] = useState<string | null>(null);
   const flashTimer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
@@ -96,7 +103,8 @@ export function MonthScreen({
     ? focus.slice(EXPENSE_PREFIX.length)
     : null;
   const focusedBill = focus && !focusedExpense ? focus : null;
-  const covered = quickAdd !== null;
+  const editingBill = bills.find((b) => b.templateId === editingId);
+  const covered = quickAdd !== null || editingBill !== undefined;
 
   const toggleBill = (templateId: string) => {
     const bill = bills.find((b) => b.templateId === templateId);
@@ -120,6 +128,60 @@ export function MonthScreen({
       () => {
         settling.clear();
         return data.saveEntry(previous);
+      },
+    );
+  };
+
+  const focusRow = (templateId: string) =>
+    requestAnimationFrame(() =>
+      document
+        .querySelector<HTMLElement>(
+          `[data-bill="${templateId}"] [data-role="main"]`,
+        )
+        ?.focus(),
+    );
+
+  const editBill = (templateId: string) => {
+    onCloseQuickAdd();
+    setFocus(templateId);
+    setEditingId(templateId);
+  };
+
+  const closeEdit = () => {
+    if (editingId) focusRow(editingId);
+    setEditingId(null);
+  };
+
+  const saveBillEdit = (edit: EntryEdit) => {
+    if (!editingBill) return;
+
+    const bill = editingBill;
+    const previous = {
+      templateId: bill.templateId,
+      amountCents: bill.amountCents,
+      paidAt: bill.paidAt,
+    };
+    const paidAt = edit.paid
+      ? (bill.paidAt ?? paymentDate(month, bill.dueDay, today))
+      : null;
+
+    if (paidAt && !bill.paidAt) settling.hold(bill.templateId, bill.group);
+    data.saveEntry({ ...previous, amountCents: edit.amountCents, paidAt });
+    if (edit.applyToTemplate) {
+      data.updateTemplate(bill.templateId, { amountCents: edit.amountCents });
+    }
+    closeEdit();
+
+    announce(
+      `${bill.name}: R$ ${formatCents(edit.amountCents)} em ${monthName(month)}${edit.applyToTemplate ? " e nos próximos" : ""}`,
+      () => {
+        settling.clear();
+        data.saveEntry(previous);
+        if (edit.applyToTemplate) {
+          return data.updateTemplate(bill.templateId, {
+            amountCents: bill.defaultCents,
+          });
+        }
       },
     );
   };
@@ -222,6 +284,19 @@ export function MonthScreen({
             onShowLate={() => setFocus(lateBills[0]?.templateId ?? null)}
           />
         </div>
+        {editingBill && (
+          <div className={styles.panel} data-active={true}>
+            <EditEntry
+              key={editingBill.templateId}
+              bill={editingBill}
+              month={month}
+              today={today}
+              size={heroSize(width)}
+              onSave={saveBillEdit}
+              onCancel={closeEdit}
+            />
+          </div>
+        )}
         {quickAdd && (
           <div className={styles.panel} data-active={true}>
             <QuickAdd
@@ -251,7 +326,7 @@ export function MonthScreen({
             isCurrentMonth={isCurrentMonth}
             showPaid={showPaid[group]}
             settling={settling.settling}
-            editingId={null}
+            editingId={editingId}
             focusedId={focusedBill}
             failedIds={data.failedEntries}
             tabbableId={null}
@@ -262,7 +337,7 @@ export function MonthScreen({
             }}
             onHover={settling.onHover}
             onToggle={toggleBill}
-            onEdit={noop}
+            onEdit={editBill}
             onFocus={setFocus}
           />
         ))}
