@@ -1,0 +1,144 @@
+.column {
+  min-width: 0;
+  transition: opacity 320ms ease;
+}
+
+.column[data-dim="true"] {
+  opacity: 0.32;
+}
+
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  row-gap: 7px;
+  column-gap: 12px;
+  padding: 12px 0;
+  border-top: 2px solid var(--text);
+}
+
+.title {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: normal;
+  font-variation-settings:
+    "wght" 760,
+    "wdth" 118;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.total {
+  font-size: 24px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition:
+    font-variation-settings 800ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 300ms;
+}
+
+.summary {
+  grid-column: 1 / -1;
+  font:
+    500 10px / 1 "Martian Mono",
+    monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+
+.summary[data-late="true"] {
+  color: var(--red);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.today {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 24px;
+}
+
+.todayLabel {
+  padding: 4px 6px 3px;
+  border-radius: 3px;
+  background: var(--hl);
+  color: var(--hl-text);
+  font:
+    600 9.5px / 1 "Martian Mono",
+    monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.todayLine {
+  flex: 1;
+  height: 1.5px;
+  background: var(--text);
+}
+
+.done {
+  margin: 0;
+  padding: 14px 0 6px;
+  font-size: 15px;
+  font-variation-settings:
+    "wght" 300,
+    "wdth" 86;
+  color: var(--graphite);
+}
+
+.paid {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 38px;
+  padding: 0 2px;
+  font:
+    500 10.5px / 1 "Martian Mono",
+    monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+
+.paid:hover {
+  color: var(--text);
+}
+
+.column[data-compact="true"] .paid {
+  min-height: 48px;
+}
+
+.paidMark {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--graphite);
+}
+
+.paidMark svg {
+  width: 9px;
+  height: 9px;
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.grow {
+  flex: 1;
+}
+
+.action {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
