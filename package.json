@@ -18,7 +18,8 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "seed": "tsx scripts/seed-demo.ts",
-    "backup": "tsx scripts/backup.ts"
+    "backup": "tsx scripts/backup.ts",
+    "import-sheet": "tsx scripts/import-sheet.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
