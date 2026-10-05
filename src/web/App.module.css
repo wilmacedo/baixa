@@ -1,0 +1,17 @@
+.app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.margin {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 24px;
+  width: 1px;
+  background: var(--red);
+  opacity: 0.32;
+  pointer-events: none;
+}
