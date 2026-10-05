@@ -76,6 +76,54 @@ describe("buildPlan templates", () => {
   });
 });
 
+describe("buildPlan with a model tab", () => {
+  const model = {
+    bills: [
+      bill("Rent", { amountCents: 300000 }),
+      bill("Card", { group: "cards", amountCents: null }),
+    ],
+    expenses: [],
+  };
+  const plan = buildPlan(
+    [
+      {
+        month: "2026-08",
+        tab: {
+          bills: [
+            bill("Rent", { paid: true, paidOn: "2026-08-10" }),
+            bill("Card", { group: "cards", amountCents: 70000 }),
+            bill("Old loan"),
+          ],
+          expenses: [],
+        },
+      },
+    ],
+    model,
+  );
+  const template = (name: string) =>
+    plan.templates.find((t) => t.name === name);
+
+  it("takes the default amount from the model, empty meaning none", () => {
+    expect(template("Rent")?.amountCents).toBe(300000);
+    expect(template("Card")?.amountCents).toBe(0);
+  });
+
+  it("keeps only the model bills active", () => {
+    expect(template("Rent")?.active).toBe(true);
+    expect(template("Card")?.active).toBe(true);
+    expect(template("Old loan")?.active).toBe(false);
+  });
+
+  it("still imports the amounts each month had", () => {
+    expect(plan.entries).toContainEqual(
+      expect.objectContaining({
+        templateKey: "cards:card",
+        amountCents: 70000,
+      }),
+    );
+  });
+});
+
 describe("buildPlan entries", () => {
   const plan = buildPlan(tabs);
 

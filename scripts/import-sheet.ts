@@ -1,12 +1,13 @@
 import { mkdirSync, readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { openDatabase } from "../src/server/db";
+import { normalizeText } from "../src/shared/category";
 import { formatCents } from "../src/shared/money";
 import { applyPlan } from "./import/apply";
 import { parseCsv } from "./import/csv";
 import { buildPlan, type TabInput } from "./import/plan";
 import { monthFromTabName } from "./import/sheet-values";
-import { parseTab } from "./import/tab";
+import { type ParsedTab, parseTab } from "./import/tab";
 
 const args = process.argv.slice(2);
 const apply = args.includes("--apply");
@@ -18,11 +19,16 @@ if (!directory) {
 }
 
 const tabs: TabInput[] = [];
+let model: ParsedTab | undefined;
 for (const file of readdirSync(directory)
   .filter((f) => f.endsWith(".csv"))
   .sort()) {
   const tabName = basename(file, ".csv").split(" - ").at(-1) ?? file;
   const month = monthFromTabName(tabName);
+  if (normalizeText(tabName) === "modelo") {
+    model = parseTab(parseCsv(readFileSync(join(directory, file), "utf8")));
+    continue;
+  }
   if (!month) {
     console.log(`Skipping ${file}: "${tabName}" is not a month.`);
     continue;
@@ -33,7 +39,12 @@ for (const file of readdirSync(directory)
   });
 }
 
-const plan = buildPlan(tabs);
+if (!model) {
+  console.log(
+    'No "Modelo" tab found: recurring bills are inferred from the newest month.',
+  );
+}
+const plan = buildPlan(tabs, model);
 
 console.log(
   "\nMonth     Pending         Paid            Cards           One-offs",

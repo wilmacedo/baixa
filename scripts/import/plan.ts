@@ -77,7 +77,10 @@ interface Seen {
 
 const keyOf = (bill: SheetBill) => `${bill.group}:${normalizeText(bill.name)}`;
 
-export function buildPlan(inputs: readonly TabInput[]): ImportPlan {
+export function buildPlan(
+  inputs: readonly TabInput[],
+  model?: ParsedTab,
+): ImportPlan {
   const tabs = [...inputs].sort((a, b) => a.month.localeCompare(b.month));
   const latest = tabs.at(-1)?.month;
   const warnings: string[] = [];
@@ -99,9 +102,26 @@ export function buildPlan(inputs: readonly TabInput[]): ImportPlan {
     }
   }
 
+  const modelAmounts = new Map(
+    (model?.bills ?? []).map((bill) => [keyOf(bill), bill.amountCents ?? 0]),
+  );
+  for (const bill of model?.bills ?? []) {
+    const key = keyOf(bill);
+    if (!seen.has(key)) {
+      seen.set(key, {
+        name: bill.name,
+        group: bill.group,
+        amountCents: null,
+        dueDay: null,
+        lastMonth: latest as MonthKey,
+      });
+    }
+  }
+
   const templates: PlannedTemplate[] = [];
   for (const [key, info] of seen) {
-    if (!info.amountCents) {
+    const inModel = modelAmounts.has(key);
+    if (!inModel && !info.amountCents) {
       warnings.push(`Skipped "${info.name}": it never had an amount.`);
       continue;
     }
@@ -112,9 +132,11 @@ export function buildPlan(inputs: readonly TabInput[]): ImportPlan {
       key,
       name: info.name,
       group: info.group,
-      amountCents: info.amountCents,
+      amountCents: inModel
+        ? (modelAmounts.get(key) ?? 0)
+        : (info.amountCents ?? 0),
       dueDay: info.dueDay ?? 1,
-      active: info.lastMonth === latest,
+      active: model ? inModel : info.lastMonth === latest,
     });
   }
   const byKey = new Map(templates.map((t) => [t.key, t]));
