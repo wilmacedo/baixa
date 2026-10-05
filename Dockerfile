@@ -13,7 +13,11 @@ RUN pnpm build:web \
   && pnpm prune --prod
 
 FROM base AS runtime
+ARG CLAUDE_CODE_VERSION=2.1.289
+RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} \
+  && npm cache clean --force
 ENV NODE_ENV=production \
+  CLAUDE_CONFIG_DIR=/data/claude \
   TZ=America/Sao_Paulo \
   PORT=3000 \
   DATABASE_PATH=/data/baixa.db \

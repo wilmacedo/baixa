@@ -55,11 +55,27 @@ The container publishes port `21832` on all host interfaces, so it is reachable 
 
 The data lives in the `baixa-data` Docker volume, in a SQLite file at `/data/baixa.db`.
 
+## Chat assistant
+
+A chat button in the bottom right corner opens an assistant that answers questions about your bills and expenses. It reads your data through a read-only MCP server and cannot change anything. It runs the `claude` CLI inside the container, so it uses your Claude subscription and no API key.
+
+To turn it on, create a token once on a machine where you are logged in to Claude Code, and give it to the container:
+
+```sh
+claude setup-token
+cp .env.example .env && chmod 600 .env   # paste the token after CLAUDE_CODE_OAUTH_TOKEN=
+docker compose up -d
+```
+
+`.env` is ignored by git and by the Docker build, and the token is passed to the container only at run time. Without it the button does not appear. The model is `sonnet` by default; set `BAIXA_CHAT_MODEL` (for example `haiku`) to change it. Conversations are stored in the same database.
+
+The MCP server listens on `127.0.0.1:3001` inside the container and is not published.
+
 ## Importing the old spreadsheet
 
 The importer reads CSV exports of the spreadsheet, one per month tab. It is meant to be run by hand, once.
 
-1. In Google Sheets, open each month tab and use **File > Download > Comma-separated values**. Put the files in one folder. The tab name must be in the file name (for example `Planilha - Set_2026.csv`), because that is how the month is found. Tabs that are not months, such as the template tab, are skipped.
+1. In Google Sheets, open each month tab and use **File > Download > Comma-separated values**. Put the files in one folder. The tab name must be in the file name (for example `Planilha - Set_2026.csv`), because that is how the month is found. A tab named `Modelo` is read as the template: its bills become the recurring bills, an empty amount there means a variable bill (such as a card), and a bill already marked as paid in the charges section is flagged as charged automatically. Other tabs that are not months are skipped.
 2. Do a dry run. It writes nothing and prints the totals of each month (pending, paid, cards, one-offs) so you can compare them with the spreadsheet:
 
    ```sh
@@ -79,7 +95,7 @@ The importer reads CSV exports of the spreadsheet, one per month tab. It is mean
    docker compose exec baixa node_modules/.bin/tsx scripts/import-sheet.ts /tmp/csv --apply
    ```
 
-Recurring bills are inferred from the names in the tabs. The amount is the latest one found and the due day is the day of the latest payment, so review the due days in the recurring bills screen afterwards. Bills missing from the newest month are imported as inactive.
+Recurring bills come from the `Modelo` tab when there is one, and are otherwise inferred from the newest month. The due day is the day of the latest payment, so review the due days in the recurring bills screen afterwards. Bills that are not in the template are imported as inactive, which keeps their history.
 
 ## Backup and restore
 

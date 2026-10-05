@@ -2,6 +2,9 @@ services:
   baixa:
     build: .
     restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
     ports:
       - "21832:3000"
     volumes:
