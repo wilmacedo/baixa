@@ -56,6 +56,32 @@ The container listens on `127.0.0.1:3000`, and `tailscale serve` publishes it ov
 
 The data lives in the `baixa-data` Docker volume, in a SQLite file at `/data/baixa.db`.
 
+## Importing the old spreadsheet
+
+The importer reads CSV exports of the spreadsheet, one per month tab. It is meant to be run by hand, once.
+
+1. In Google Sheets, open each month tab and use **File > Download > Comma-separated values**. Put the files in one folder. The tab name must be in the file name (for example `Planilha - Set_2026.csv`), because that is how the month is found. Tabs that are not months, such as the template tab, are skipped.
+2. Do a dry run. It writes nothing and prints the totals of each month (pending, paid, cards, one-offs) so you can compare them with the spreadsheet:
+
+   ```sh
+   pnpm import-sheet ./csv
+   ```
+
+3. When the totals match, import. It refuses to run on a database that already has data:
+
+   ```sh
+   pnpm import-sheet ./csv --apply
+   ```
+
+   With the container, copy the files in and run it there:
+
+   ```sh
+   docker compose cp ./csv baixa:/tmp/csv
+   docker compose exec baixa node_modules/.bin/tsx scripts/import-sheet.ts /tmp/csv --apply
+   ```
+
+Recurring bills are inferred from the names in the tabs. The amount is the latest one found and the due day is the day of the latest payment, so review the due days in the recurring bills screen afterwards. Bills missing from the newest month are imported as inactive.
+
 ## Backup and restore
 
 Do not copy `baixa.db` by hand while the app is running: SQLite keeps recent writes in a separate `-wal` file, so the main file alone can be missing data. Use the backup script, which takes a consistent snapshot:
