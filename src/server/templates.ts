@@ -88,3 +88,5 @@ export function createTemplates(db: Db) {
     },
   };
 }
+
+export type Templates = ReturnType<typeof createTemplates>;
