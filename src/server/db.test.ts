@@ -40,8 +40,15 @@ describe("openDatabase", () => {
       .all()
       .map((row) => (row as { name: string }).name);
 
-    expect(tables).toEqual(["entries", "expenses", "templates"]);
-    expect(db.pragma("user_version", { simple: true })).toBe(3);
+    expect(tables).toEqual([
+      "chat_conversations",
+      "chat_messages",
+      "entries",
+      "expenses",
+      "sqlite_sequence",
+      "templates",
+    ]);
+    expect(db.pragma("user_version", { simple: true })).toBe(4);
   });
 
   it("keeps the data and the version when reopened", () => {
@@ -53,7 +60,7 @@ describe("openDatabase", () => {
       first.close();
 
       const second = track(openDatabase(path));
-      expect(second.pragma("user_version", { simple: true })).toBe(3);
+      expect(second.pragma("user_version", { simple: true })).toBe(4);
       expect(
         second.prepare("SELECT COUNT(*) AS n FROM templates").get(),
       ).toEqual({
