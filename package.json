@@ -35,7 +35,8 @@
     "better-sqlite3": "^12.11.1",
     "hono": "^4.13.13",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "zod": "^4.6.5"
   },
   "packageManager": "pnpm@10.28.2",
   "pnpm": {
