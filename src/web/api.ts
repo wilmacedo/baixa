@@ -1,3 +1,4 @@
+import type { CategorizedExpense } from "../shared/category";
 import type { MonthKey } from "../shared/months";
 import type {
   Entry,
@@ -55,6 +56,9 @@ export const api = {
 
   updateTemplate: (id: string, patch: TemplatePatch) =>
     request<Template>("PUT", `/templates/${id}`, patch),
+
+  expenseHistory: () =>
+    request<CategorizedExpense[]>("GET", "/expenses/history"),
 
   createExpense: (input: ExpenseInput) =>
     request<Expense>("POST", "/expenses", input),

@@ -72,6 +72,14 @@ describe("api", () => {
     expect(JSON.parse(init.body as string)).toEqual(input);
   });
 
+  it("fetches the expense description history", async () => {
+    const history = [{ description: "Lunch", category: "leisure" }];
+    fetchMock.mockResolvedValue(json(history));
+
+    expect(await api.expenseHistory()).toEqual(history);
+    expect(lastCall().url).toBe("/api/expenses/history");
+  });
+
   it("deletes an expense and returns nothing", async () => {
     fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
 
