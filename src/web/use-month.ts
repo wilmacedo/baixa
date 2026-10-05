@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { resolveEntries } from "../shared/generate-month";
 import type { MonthKey } from "../shared/months";
-import type { Entry, Expense, ExpenseInput } from "../shared/types";
+import type {
+  Entry,
+  Expense,
+  ExpenseInput,
+  TemplatePatch,
+} from "../shared/types";
 import { api } from "./api";
 import { initialMonthState, monthReducer } from "./month-state";
 import { newId } from "./new-id";
@@ -41,6 +46,25 @@ export function useMonth(month: MonthKey, currentMonth: MonthKey) {
           previous,
         });
       }
+      return false;
+    }
+  };
+
+  const updateTemplate = async (
+    id: string,
+    patch: TemplatePatch,
+  ): Promise<boolean> => {
+    const previous = latest.current.templates.find((t) => t.id === id);
+    if (!previous) return false;
+
+    if (stillShowing()) {
+      dispatch({ type: "templateSet", template: { ...previous, ...patch } });
+    }
+    try {
+      await api.updateTemplate(id, patch);
+      return true;
+    } catch {
+      if (stillShowing()) dispatch({ type: "templateSet", template: previous });
       return false;
     }
   };
@@ -118,6 +142,7 @@ export function useMonth(month: MonthKey, currentMonth: MonthKey) {
     failedEntries: isShowing ? state.failedEntries : [],
     reload: load,
     saveEntry,
+    updateTemplate,
     addExpense,
     replaceExpense,
     deleteExpense,
