@@ -1,0 +1,48 @@
+.row {
+  display: grid;
+  grid-template-columns: 30px 20px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+  min-height: 42px;
+  padding-right: 4px;
+  border-bottom: 1px solid var(--rule2);
+}
+
+.row[data-compact="true"] {
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  min-height: 58px;
+}
+
+.circle {
+  justify-self: center;
+  width: 19px;
+  height: 19px;
+  box-sizing: border-box;
+  border: 1.5px dashed var(--rule);
+  border-radius: 50%;
+}
+
+.day,
+.name,
+.amount {
+  display: block;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--rule2);
+}
+
+.day {
+  width: 14px;
+}
+
+.row[data-compact="true"] .day {
+  display: none;
+}
+
+.name {
+  width: 58%;
+}
+
+.amount {
+  width: 64px;
+}
