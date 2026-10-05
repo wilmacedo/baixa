@@ -1,6 +1,6 @@
 import { daysBetween, parseIsoDate, weekday } from "../shared/dates";
 import type { Bill } from "../shared/ledger";
-import { type MonthKey, parseMonthKey } from "../shared/months";
+import { type MonthKey, parseMonthKey, type Today } from "../shared/months";
 import type { Category, Group } from "../shared/types";
 
 const MONTHS = [
@@ -106,4 +106,9 @@ export function billTag(
     case "pending":
       return bill.adjusted ? "ajustado" : null;
   }
+}
+
+export function todayMarker(today: Today): string {
+  const { monthIndex } = parseMonthKey(today.month);
+  return `hoje · ${today.day} ${MONTHS_SHORT[monthIndex]}`;
 }

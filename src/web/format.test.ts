@@ -9,6 +9,7 @@ import {
   monthShort,
   paidOn,
   plural,
+  todayMarker,
 } from "./format";
 
 describe("month names", () => {
@@ -102,5 +103,11 @@ describe("billTag", () => {
 
     expect(billTag(late, { editing: true })).toBe("editando");
     expect(billTag(late, { editing: true, failed: true })).toBe("não salvou");
+  });
+});
+
+describe("todayMarker", () => {
+  it("labels the marker with the day and month", () => {
+    expect(todayMarker({ month: "2026-10", day: 5 })).toBe("hoje · 5 out");
   });
 });
