@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { GROUPS } from "../shared/types";
+import { CATEGORIES, GROUPS } from "../shared/types";
 
 const MAX_AMOUNT_CENTS = 9_999_999_999;
 
@@ -19,4 +19,11 @@ export const templatePatch = templateInput
 export const entryInput = z.object({
   amountCents,
   paidAt: z.iso.date().nullable(),
+});
+
+export const expenseInput = z.object({
+  description: z.string().trim().min(1).max(120),
+  amountCents,
+  category: z.enum(CATEGORIES),
+  spentOn: z.iso.date(),
 });

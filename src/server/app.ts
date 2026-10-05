@@ -3,6 +3,7 @@ import type { Db } from "./db";
 import { createEntries } from "./entries";
 import { createExpenses } from "./expenses";
 import { handleError } from "./http";
+import { expenseRoutes } from "./routes/expenses";
 import { monthRoutes } from "./routes/months";
 import { templateRoutes } from "./routes/templates";
 import { createTemplates } from "./templates";
@@ -17,6 +18,7 @@ export function createApp(db: Db) {
 
   app.get("/api/health", (c) => c.json({ ok: true }));
   app.route("/api/templates", templateRoutes(templates));
+  app.route("/api/expenses", expenseRoutes(expenses));
   app.route("/api/months", monthRoutes({ templates, entries, expenses }));
 
   return app;
