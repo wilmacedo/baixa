@@ -71,6 +71,8 @@ docker compose up -d
 
 The MCP server listens on `127.0.0.1:3001` inside the container and is not published.
 
+To check the answers against your own data, run `pnpm chat:eval --db <copy of the database> [--model haiku]` on a machine where `claude` is logged in. It asks a few questions whose answers come from the same queries the tools use and prints which ones the model got right.
+
 ## Importing the old spreadsheet
 
 The importer reads CSV exports of the spreadsheet, one per month tab. It is meant to be run by hand, once.
