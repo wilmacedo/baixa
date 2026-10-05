@@ -49,7 +49,6 @@ export function TemplateForm({
     const amountCents = parseRaw(raw);
     const dueDay = Number.parseInt(day, 10);
     if (!name.trim()) return setError("Dê um nome para a conta.");
-    if (amountCents <= 0) return setError("Digite o valor padrão.");
     if (!(dueDay >= 1 && dueDay <= 31)) return setError("O dia vai de 1 a 31.");
 
     onSave({
@@ -88,7 +87,7 @@ export function TemplateForm({
 
       <div className={styles.row}>
         <label className={styles.field}>
-          <span className={styles.label}>valor padrão</span>
+          <span className={styles.label}>valor padrão (opcional)</span>
           <input
             className={styles.input}
             data-amount="true"

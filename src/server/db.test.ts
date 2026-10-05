@@ -1,6 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import Database from "better-sqlite3";
 import { afterEach, describe, expect, it } from "vitest";
 import { type Db, openDatabase } from "./db";
 
@@ -40,7 +41,7 @@ describe("openDatabase", () => {
       .map((row) => (row as { name: string }).name);
 
     expect(tables).toEqual(["entries", "expenses", "templates"]);
-    expect(db.pragma("user_version", { simple: true })).toBe(1);
+    expect(db.pragma("user_version", { simple: true })).toBe(2);
   });
 
   it("keeps the data and the version when reopened", () => {
@@ -52,7 +53,7 @@ describe("openDatabase", () => {
       first.close();
 
       const second = track(openDatabase(path));
-      expect(second.pragma("user_version", { simple: true })).toBe(1);
+      expect(second.pragma("user_version", { simple: true })).toBe(2);
       expect(
         second.prepare("SELECT COUNT(*) AS n FROM templates").get(),
       ).toEqual({
@@ -65,12 +66,51 @@ describe("openDatabase", () => {
 
   it.each([
     ["an unknown group", { group: "other" }],
-    ["a zero amount", { amount_cents: 0 }],
+    ["a negative amount", { amount_cents: -1 }],
     ["a due day above 31", { due_day: 32 }],
     ["a due day below 1", { due_day: 0 }],
   ])("rejects a template with %s", (_label, overrides) => {
     const db = track(openDatabase(":memory:"));
     expect(() => insertTemplate(db, overrides)).toThrow();
+  });
+
+  it("accepts a template without a default amount", () => {
+    const db = track(openDatabase(":memory:"));
+    expect(() => insertTemplate(db, { amount_cents: 0 })).not.toThrow();
+  });
+
+  it("keeps templates and entries when migrating from the first schema", () => {
+    const dir = mkdtempSync(join(tmpdir(), "baixa-"));
+    try {
+      const path = join(dir, "old.db");
+      const old = new Database(path);
+      old.pragma("foreign_keys = ON");
+      old.exec(
+        `CREATE TABLE templates (id TEXT PRIMARY KEY, name TEXT NOT NULL,
+           amount_cents INTEGER NOT NULL CHECK (amount_cents > 0),
+           due_day INTEGER NOT NULL, "group" TEXT NOT NULL,
+           active INTEGER NOT NULL DEFAULT 1, position INTEGER NOT NULL);
+         CREATE TABLE entries (month TEXT NOT NULL,
+           template_id TEXT NOT NULL REFERENCES templates (id),
+           amount_cents INTEGER NOT NULL CHECK (amount_cents > 0), paid_at TEXT,
+           PRIMARY KEY (month, template_id));
+         INSERT INTO templates VALUES ('t1', 'Rent', 100000, 5, 'fixed', 1, 1);
+         INSERT INTO entries VALUES ('2026-09', 't1', 100000, NULL);
+         PRAGMA user_version = 1;`,
+      );
+      old.close();
+
+      const db = track(openDatabase(path));
+      expect(db.prepare("SELECT COUNT(*) AS n FROM entries").get()).toEqual({
+        n: 1,
+      });
+      expect(
+        db.prepare("SELECT name FROM templates WHERE id = 't1'").get(),
+      ).toEqual({ name: "Rent" });
+      expect(db.pragma("foreign_key_check")).toEqual([]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("rejects an expense with an unknown category", () => {

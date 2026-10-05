@@ -126,6 +126,7 @@ export function MonthScreen({
   const toggleBill = (templateId: string) => {
     const bill = bills.find((b) => b.templateId === templateId);
     if (!bill) return;
+    if (bill.amountCents === 0) return editBill(templateId);
 
     const paidAt = bill.paidAt ? null : paymentDate(month, bill.dueDay, today);
     const previous = {

@@ -7,7 +7,7 @@ export const amountCents = z.number().int().positive().max(MAX_AMOUNT_CENTS);
 
 export const templateInput = z.object({
   name: z.string().trim().min(1).max(80),
-  amountCents,
+  amountCents: z.number().int().nonnegative().max(MAX_AMOUNT_CENTS),
   dueDay: z.number().int().min(1).max(31),
   group: z.enum(GROUPS),
 });

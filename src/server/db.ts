@@ -36,13 +36,32 @@ const MIGRATIONS = [
 
   CREATE INDEX expenses_spent_on ON expenses (spent_on);
   `,
+  `
+  CREATE TABLE templates_next (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    amount_cents INTEGER NOT NULL CHECK (amount_cents >= 0),
+    due_day INTEGER NOT NULL CHECK (due_day BETWEEN 1 AND 31),
+    "group" TEXT NOT NULL CHECK ("group" IN (${quoted(GROUPS)})),
+    active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
+    position INTEGER NOT NULL
+  );
+  INSERT INTO templates_next SELECT * FROM templates;
+  DROP TABLE templates;
+  ALTER TABLE templates_next RENAME TO templates;
+  `,
 ];
 
 function migrate(db: Db) {
   const applied = db.pragma("user_version", { simple: true }) as number;
+
+  db.pragma("foreign_keys = OFF");
   MIGRATIONS.slice(applied).forEach((sql, index) => {
     db.transaction(() => {
       db.exec(sql);
+      if ((db.pragma("foreign_key_check") as unknown[]).length > 0) {
+        throw new Error("Migration left rows that break a foreign key.");
+      }
       db.pragma(`user_version = ${applied + index + 1}`);
     })();
   });
@@ -50,8 +69,8 @@ function migrate(db: Db) {
 
 export function openDatabase(path: string): Db {
   const db = new Database(path);
-  db.pragma("foreign_keys = ON");
   if (path !== ":memory:") db.pragma("journal_mode = WAL");
   migrate(db);
+  db.pragma("foreign_keys = ON");
   return db;
 }

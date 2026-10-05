@@ -42,6 +42,15 @@ describe("POST /api/templates", () => {
     ]);
   });
 
+  it("accepts a template without a default amount", async () => {
+    const res = await send("POST", "/api/templates", {
+      ...rent,
+      amountCents: 0,
+    });
+
+    expect(res.status).toBe(201);
+  });
+
   it("trims the name", async () => {
     const res = await send("POST", "/api/templates", {
       ...rent,
@@ -53,7 +62,7 @@ describe("POST /api/templates", () => {
 
   it.each([
     ["an empty name", { name: "  " }],
-    ["a zero amount", { amountCents: 0 }],
+    ["a negative amount", { amountCents: -1 }],
     ["a fractional amount", { amountCents: 10.5 }],
     ["a due day of 32", { dueDay: 32 }],
     ["an unknown group", { group: "misc" }],

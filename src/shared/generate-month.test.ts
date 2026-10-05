@@ -28,6 +28,13 @@ describe("resolveEntries", () => {
     ]);
   });
 
+  it("generates an empty entry for a template without a default amount", () => {
+    const variable = [template({ id: "card", amountCents: 0 })];
+    expect(resolveEntries("2026-10", current, variable, [])).toEqual([
+      { templateId: "card", amountCents: 0, paidAt: null },
+    ]);
+  });
+
   it("generates entries for future months too", () => {
     const ids = resolveEntries("2027-02", current, templates, []).map(
       (e) => e.templateId,

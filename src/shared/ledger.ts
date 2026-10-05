@@ -50,7 +50,9 @@ export function buildBills(
         defaultCents: template.amountCents,
         paidAt: entry.paidAt,
         status,
-        adjusted: entry.amountCents !== template.amountCents,
+        adjusted:
+          template.amountCents > 0 &&
+          entry.amountCents !== template.amountCents,
         daysLate:
           status === "late" && month === today.month
             ? today.day - template.dueDay
