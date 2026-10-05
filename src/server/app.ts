@@ -20,6 +20,7 @@ export function createApp(db: Db) {
   app.route("/api/templates", templateRoutes(templates));
   app.route("/api/expenses", expenseRoutes(expenses));
   app.route("/api/months", monthRoutes({ templates, entries, expenses }));
+  app.all("/api/*", (c) => c.json({ error: "Not found" }, 404));
 
   return app;
 }
