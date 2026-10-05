@@ -149,6 +149,17 @@ describe("entries", () => {
     expect(state.failedEntries).toEqual(["rent"]);
   });
 
+  it("clears every failure flag on request", () => {
+    const state = run(
+      ready(),
+      { type: "entryReverted", templateId: "rent", previous: undefined },
+      { type: "entryReverted", templateId: "gym", previous: undefined },
+      { type: "failuresCleared" },
+    );
+
+    expect(state.failedEntries).toEqual([]);
+  });
+
   it("clears the failure flag on the next attempt", () => {
     const state = run(
       ready(),

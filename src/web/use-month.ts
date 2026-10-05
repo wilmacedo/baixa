@@ -141,6 +141,7 @@ export function useMonth(month: MonthKey, currentMonth: MonthKey) {
     expenses: isShowing ? state.expenses : [],
     failedEntries: isShowing ? state.failedEntries : [],
     reload: load,
+    dismissFailures: () => dispatch({ type: "failuresCleared" }),
     saveEntry,
     updateTemplate,
     addExpense,
