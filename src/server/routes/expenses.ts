@@ -1,7 +1,8 @@
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import type { Expenses } from "../expenses";
 import { notFound, readBody } from "../http";
-import { expenseInput } from "../schemas";
+import { expenseCreate, expenseInput } from "../schemas";
 
 const HISTORY_LIMIT = 1000;
 
@@ -11,8 +12,11 @@ export function expenseRoutes(expenses: Expenses) {
   routes.get("/history", (c) => c.json(expenses.history(HISTORY_LIMIT)));
 
   routes.post("/", async (c) => {
-    const input = await readBody(c, expenseInput);
-    return c.json(expenses.create(input), 201);
+    const { id, ...input } = await readBody(c, expenseCreate);
+    if (id && expenses.get(id)) {
+      throw new HTTPException(409, { message: "Expense already exists" });
+    }
+    return c.json(expenses.create(input, id), 201);
   });
 
   routes.put("/:id", async (c) => {

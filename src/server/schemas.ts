@@ -27,3 +27,5 @@ export const expenseInput = z.object({
   category: z.enum(CATEGORIES),
   spentOn: z.iso.date(),
 });
+
+export const expenseCreate = expenseInput.extend({ id: z.uuid().optional() });

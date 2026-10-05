@@ -68,8 +68,7 @@ export function createExpenses(db: Db) {
     history: (limit: number): CategorizedExpense[] =>
       selectHistory.all(limit) as CategorizedExpense[],
 
-    create(input: ExpenseInput): Expense {
-      const id = randomUUID();
+    create(input: ExpenseInput, id: string = randomUUID()): Expense {
       insert.run(toParams(id, input));
       return get(id) as Expense;
     },

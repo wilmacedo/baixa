@@ -29,6 +29,12 @@ describe("expenses", () => {
     expect(expenses.get(created.id)).toEqual(created);
   });
 
+  it("stores an expense under a given id", () => {
+    const created = expenses.create(lunch, "fixed-id");
+
+    expect(created.id).toBe("fixed-id");
+  });
+
   it("lists only the expenses of the month, newest first", () => {
     expenses.create({ ...lunch, description: "Early", spentOn: "2026-10-01" });
     expenses.create({

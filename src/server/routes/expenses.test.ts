@@ -62,6 +62,29 @@ describe("POST /api/expenses", () => {
     expect(await expensesOf("2026-10")).toEqual([created]);
   });
 
+  it("keeps an id chosen by the client", async () => {
+    const id = "6f1c1a8e-3f5b-4c1e-9d0a-2b7d4e5f6a7b";
+    const res = await send("POST", "/api/expenses", { ...lunch, id });
+
+    expect(res.status).toBe(201);
+    expect(await res.json()).toMatchObject({ id, ...lunch });
+  });
+
+  it("refuses an id that is already taken", async () => {
+    const id = "6f1c1a8e-3f5b-4c1e-9d0a-2b7d4e5f6a7b";
+    await send("POST", "/api/expenses", { ...lunch, id });
+    const res = await send("POST", "/api/expenses", { ...lunch, id });
+
+    expect(res.status).toBe(409);
+    expect(await expensesOf("2026-10")).toHaveLength(1);
+  });
+
+  it("rejects an id that is not a uuid", async () => {
+    const res = await send("POST", "/api/expenses", { ...lunch, id: "nope" });
+
+    expect(res.status).toBe(400);
+  });
+
   it("trims the description", async () => {
     const res = await send("POST", "/api/expenses", {
       ...lunch,
