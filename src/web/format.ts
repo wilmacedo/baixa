@@ -112,3 +112,9 @@ export function todayMarker(today: Today): string {
   const { monthIndex } = parseMonthKey(today.month);
   return `hoje · ${today.day} ${MONTHS_SHORT[monthIndex]}`;
 }
+
+export function todayLong(today: Today): string {
+  const { year, monthIndex } = parseMonthKey(today.month);
+  const iso = `${today.month}-${String(today.day).padStart(2, "0")}`;
+  return `hoje · ${WEEKDAYS_SHORT[weekday(iso)]}, ${today.day} ${MONTHS_SHORT[monthIndex]} ${year}`;
+}

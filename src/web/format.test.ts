@@ -9,6 +9,7 @@ import {
   monthShort,
   paidOn,
   plural,
+  todayLong,
   todayMarker,
 } from "./format";
 
@@ -109,5 +110,13 @@ describe("billTag", () => {
 describe("todayMarker", () => {
   it("labels the marker with the day and month", () => {
     expect(todayMarker({ month: "2026-10", day: 5 })).toBe("hoje · 5 out");
+  });
+});
+
+describe("todayLong", () => {
+  it("includes the weekday and the year", () => {
+    expect(todayLong({ month: "2026-10", day: 5 })).toBe(
+      "hoje · seg, 5 out 2026",
+    );
   });
 });
