@@ -3,6 +3,7 @@ import type { Bill, Totals } from "../../shared/ledger";
 import { formatCents } from "../../shared/money";
 import type { MonthKey } from "../../shared/months";
 import { monthName, plural } from "../format";
+import { heroSize } from "../layout";
 import styles from "./MonthSummary.module.css";
 import { Odometer } from "./Odometer";
 
@@ -35,7 +36,7 @@ export function MonthSummary({
   onShowLate,
 }: MonthSummaryProps) {
   const name = monthName(month);
-  const size = Math.max(60, Math.min(172, (width - 88 - 388) / 6.6));
+  const size = heroSize(width);
   const weight = Math.round(860 - totals.progress * 580);
   const stretch = Math.round(108 - totals.progress * 26);
   const hasTotal = totals.pendingCents + totals.paidCents > 0;
