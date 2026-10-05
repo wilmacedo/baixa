@@ -3,6 +3,7 @@ import styles from "./App.module.css";
 import { Header, type Screen } from "./components/Header";
 import { Toast } from "./components/Toast";
 import { MonthScreen, type QuickAddRequest } from "./screens/MonthScreen";
+import { RecurringScreen } from "./screens/RecurringScreen";
 import { useExpenseHistory } from "./use-expense-history";
 import { useMonthNavigation } from "./use-month-navigation";
 import { useTheme } from "./use-theme";
@@ -67,6 +68,9 @@ export function App() {
           onOpenQuickAdd={openQuickAdd}
           onCloseQuickAdd={closeQuickAdd}
         />
+      )}
+      {screen === "recurring" && (
+        <RecurringScreen today={today} width={width} announce={announce} />
       )}
       <Toast toast={toast.toast} onUndo={performUndo} />
     </div>
