@@ -1,0 +1,68 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 56px;
+  padding: 0 6px 0 18px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+  flex: none;
+}
+
+.logo {
+  font-size: 20px;
+  line-height: 1;
+  color: var(--ink);
+  font-variation-settings:
+    "wght" 820,
+    "wdth" 118;
+}
+
+.dot {
+  color: var(--red);
+}
+
+.grow {
+  flex: 1;
+}
+
+.step {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  color: var(--text);
+}
+
+.clip {
+  min-width: 74px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.month {
+  font-size: 15px;
+  font-variation-settings:
+    "wght" 560,
+    "wdth" 96;
+}
+
+.theme {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--graphite);
+}
+
+.themeIcon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+}
