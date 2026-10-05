@@ -1,5 +1,5 @@
 export type GlobalAction =
-  | { type: "theme" | "help" | "month" | "recurring" | "undo" }
+  | { type: "theme" | "help" | "chat" | "month" | "recurring" | "undo" }
   | { type: "newExpense"; digit?: string };
 
 type KeyInput = Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey" | "altKey">;
@@ -16,6 +16,8 @@ export function globalShortcut(event: KeyInput): GlobalAction | null {
       return { type: "theme" };
     case "?":
       return { type: "help" };
+    case "c":
+      return { type: "chat" };
     case "m":
       return { type: "month" };
     case "r":

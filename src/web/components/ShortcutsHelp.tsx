@@ -14,6 +14,7 @@ const SHORTCUTS: Array<{ keys: string[]; text: string }> = [
   { keys: ["Z", "⌘Z"], text: "desfazer a última ação" },
   { keys: ["M", "R"], text: "tela do mês / recorrentes" },
   { keys: ["T"], text: "trocar tema (folha / carbono)" },
+  { keys: ["C"], text: "abrir ou fechar o assistente" },
   { keys: ["esc"], text: "fechar ou cancelar" },
   { keys: ["enter"], text: "no gasto: avança e salva" },
   { keys: ["⌘", "enter"], text: "no gasto: salva de qualquer campo" },

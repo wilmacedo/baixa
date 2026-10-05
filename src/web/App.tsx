@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
 import styles from "./App.module.css";
 import { BottomBar } from "./components/BottomBar";
+import { ChatButton } from "./components/ChatButton";
+import { ChatPanel } from "./components/ChatPanel";
 import { Header, type Screen } from "./components/Header";
 import { MobileHeader } from "./components/MobileHeader";
 import { ShortcutsHelp } from "./components/ShortcutsHelp";
@@ -8,6 +10,7 @@ import { Toast } from "./components/Toast";
 import { MonthScreen, type QuickAddRequest } from "./screens/MonthScreen";
 import { RecurringScreen } from "./screens/RecurringScreen";
 import type { GlobalAction } from "./shortcuts";
+import { useChat } from "./use-chat";
 import { useExpenseHistory } from "./use-expense-history";
 import { useMonthNavigation } from "./use-month-navigation";
 import { useShortcuts } from "./use-shortcuts";
@@ -47,15 +50,20 @@ export function App() {
   };
 
   const [helpOpen, setHelpOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const chat = useChat(chatOpen);
 
   useShortcuts({
     helpOpen,
+    chatOpen,
     onAction: (action: GlobalAction) => {
       switch (action.type) {
         case "theme":
           return toggle();
         case "help":
           return setHelpOpen((open) => !open);
+        case "chat":
+          return chat.available && setChatOpen((open) => !open);
         case "month":
         case "recurring":
           return setScreen(action.type);
@@ -104,7 +112,7 @@ export function App() {
           quickAdd={quickAdd}
           onOpenQuickAdd={openQuickAdd}
           onCloseQuickAdd={closeQuickAdd}
-          keysEnabled={!helpOpen}
+          keysEnabled={!helpOpen && !chatOpen}
           mode={mode}
         />
       )}
@@ -119,6 +127,23 @@ export function App() {
         />
       )}
       {helpOpen && <ShortcutsHelp onClose={() => setHelpOpen(false)} />}
+      {chat.available && !chatOpen && (
+        <ChatButton
+          compact={mode === "mobile"}
+          busy={chat.state.phase !== "idle"}
+          onOpen={() => setChatOpen(true)}
+        />
+      )}
+      {chatOpen && (
+        <ChatPanel
+          mode={mode}
+          state={chat.state}
+          onSend={chat.send}
+          onStop={chat.stop}
+          onStartOver={chat.startOver}
+          onClose={() => setChatOpen(false)}
+        />
+      )}
       <Toast
         toast={toast.toast}
         compact={mode === "mobile"}

@@ -15,6 +15,7 @@ describe("globalShortcut", () => {
     ["t", "theme"],
     ["T", "theme"],
     ["?", "help"],
+    ["c", "chat"],
     ["m", "month"],
     ["r", "recurring"],
     ["z", "undo"],

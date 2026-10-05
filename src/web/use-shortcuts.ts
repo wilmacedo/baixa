@@ -3,10 +3,15 @@ import { type GlobalAction, globalShortcut, isEditable } from "./shortcuts";
 
 interface UseShortcutsOptions {
   helpOpen: boolean;
+  chatOpen: boolean;
   onAction: (action: GlobalAction) => void;
 }
 
-export function useShortcuts({ helpOpen, onAction }: UseShortcutsOptions) {
+export function useShortcuts({
+  helpOpen,
+  chatOpen,
+  onAction,
+}: UseShortcutsOptions) {
   useEffect(() => {
     const handle = (event: KeyboardEvent) => {
       if (event.defaultPrevented) return;
@@ -14,6 +19,7 @@ export function useShortcuts({ helpOpen, onAction }: UseShortcutsOptions) {
       const action = globalShortcut(event);
       if (!action) return;
       if (helpOpen && action.type !== "help") return;
+      if (chatOpen && action.type !== "chat") return;
       if (isEditable(event.target)) return;
 
       event.preventDefault();
@@ -22,5 +28,5 @@ export function useShortcuts({ helpOpen, onAction }: UseShortcutsOptions) {
 
     window.addEventListener("keydown", handle);
     return () => window.removeEventListener("keydown", handle);
-  }, [helpOpen, onAction]);
+  }, [helpOpen, chatOpen, onAction]);
 }
