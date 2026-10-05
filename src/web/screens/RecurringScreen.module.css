@@ -259,3 +259,27 @@
   font-size: 18px;
   line-height: 1;
 }
+
+@media (max-width: 759px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 22px 20px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .caption {
+    margin-top: 16px;
+  }
+
+  .groups {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 4px 16px 28px;
+  }
+
+  .row {
+    min-height: 56px;
+  }
+}
