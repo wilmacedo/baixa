@@ -1,0 +1,72 @@
+.list {
+  min-width: 0;
+}
+
+.items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 20px 0 8px;
+  border-bottom: 2px solid currentColor;
+  font:
+    600 10.5px / 1 "Martian Mono",
+    monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.section[data-tone="red"] {
+  color: var(--red);
+}
+
+.section[data-tone="ink"] {
+  color: var(--ink);
+}
+
+.section[data-tone="text"] {
+  color: var(--text);
+}
+
+.section[data-tone="graphite"] {
+  color: var(--graphite);
+}
+
+.grow {
+  flex: 1;
+}
+
+.sum {
+  font-weight: 500;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 32px 0 8px;
+}
+
+.emptyTitle {
+  font-size: 30px;
+  line-height: 1.05;
+  color: var(--graphite);
+  font-variation-settings:
+    "wght" 260,
+    "wdth" 84;
+}
+
+.emptyCaption {
+  font:
+    500 10.5px / 1.4 "Martian Mono",
+    monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
