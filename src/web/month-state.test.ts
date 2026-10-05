@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Entry, Expense, MonthData } from "../shared/types";
+import type { Entry, Expense, MonthData, Template } from "../shared/types";
 import {
   initialMonthState,
   type MonthAction,
@@ -84,6 +84,28 @@ describe("loading", () => {
     });
 
     expect(state).toEqual(initialMonthState("2026-11"));
+  });
+});
+
+describe("templates", () => {
+  const rent: Template = {
+    id: "rent",
+    name: "Rent",
+    amountCents: 100000,
+    dueDay: 10,
+    group: "fixed",
+    active: true,
+    position: 1,
+  };
+
+  it("replaces a template by id", () => {
+    const other = { ...rent, id: "gym", name: "Gym" };
+    const state = run(ready({ templates: [rent, other] }), {
+      type: "templateSet",
+      template: { ...rent, amountCents: 105000 },
+    });
+
+    expect(state.templates).toEqual([{ ...rent, amountCents: 105000 }, other]);
   });
 });
 

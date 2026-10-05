@@ -14,6 +14,7 @@ export type MonthAction =
   | { type: "load"; month: MonthKey }
   | { type: "loaded"; data: MonthData }
   | { type: "loadFailed"; month: MonthKey }
+  | { type: "templateSet"; template: Template }
   | { type: "entrySet"; entry: Entry }
   | { type: "entryReverted"; templateId: string; previous: Entry | undefined }
   | { type: "expenseAdded"; expense: Expense }
@@ -57,6 +58,14 @@ export function monthReducer(
       return action.month === state.month
         ? { ...state, status: "error" }
         : state;
+
+    case "templateSet":
+      return {
+        ...state,
+        templates: state.templates.map((t) =>
+          t.id === action.template.id ? action.template : t,
+        ),
+      };
 
     case "entrySet":
       return {
