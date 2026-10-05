@@ -4,6 +4,7 @@ import type { MonthKey } from "../shared/months";
 import type { Entry, Expense, ExpenseInput } from "../shared/types";
 import { api } from "./api";
 import { initialMonthState, monthReducer } from "./month-state";
+import { newId } from "./new-id";
 
 export function useMonth(month: MonthKey, currentMonth: MonthKey) {
   const [state, dispatch] = useReducer(monthReducer, month, initialMonthState);
@@ -47,22 +48,14 @@ export function useMonth(month: MonthKey, currentMonth: MonthKey) {
   const addExpense = async (
     input: ExpenseInput,
   ): Promise<Expense | undefined> => {
-    const temporary: Expense = {
-      id: `pending-${crypto.randomUUID()}`,
-      ...input,
-    };
+    const expense: Expense = { id: newId(), ...input };
     if (stillShowing() && belongsHere(input.spentOn)) {
-      dispatch({ type: "expenseAdded", expense: temporary });
+      dispatch({ type: "expenseAdded", expense });
     }
     try {
-      const saved = await api.createExpense(input);
-      if (stillShowing() && belongsHere(input.spentOn)) {
-        dispatch({ type: "expenseSwapped", id: temporary.id, expense: saved });
-      }
-      return saved;
+      return await api.createExpense(expense);
     } catch {
-      if (stillShowing())
-        dispatch({ type: "expenseRemoved", id: temporary.id });
+      if (stillShowing()) dispatch({ type: "expenseRemoved", id: expense.id });
       return undefined;
     }
   };

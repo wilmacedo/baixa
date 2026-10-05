@@ -53,23 +53,24 @@ describe("api", () => {
     });
   });
 
-  it("creates an expense with a JSON body", async () => {
-    const input = {
+  it("creates an expense with a JSON body that includes its id", async () => {
+    const expense = {
+      id: "e1",
       description: "Lunch",
       amountCents: 4590,
       category: "leisure",
       spentOn: "2026-10-03",
     } as const;
-    fetchMock.mockResolvedValue(json({ id: "e1", ...input }, 201));
+    fetchMock.mockResolvedValue(json(expense, 201));
 
-    const created = await api.createExpense(input);
+    const created = await api.createExpense(expense);
 
     const { url, init } = lastCall();
     expect(created.id).toBe("e1");
     expect(url).toBe("/api/expenses");
     expect(init.method).toBe("POST");
     expect(init.headers).toEqual({ "content-type": "application/json" });
-    expect(JSON.parse(init.body as string)).toEqual(input);
+    expect(JSON.parse(init.body as string)).toEqual(expense);
   });
 
   it("fetches the expense description history", async () => {

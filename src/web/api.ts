@@ -60,8 +60,8 @@ export const api = {
   expenseHistory: () =>
     request<CategorizedExpense[]>("GET", "/expenses/history"),
 
-  createExpense: (input: ExpenseInput) =>
-    request<Expense>("POST", "/expenses", input),
+  createExpense: (expense: Expense) =>
+    request<Expense>("POST", "/expenses", expense),
 
   replaceExpense: (id: string, input: ExpenseInput) =>
     request<Expense>("PUT", `/expenses/${id}`, input),
