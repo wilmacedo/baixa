@@ -170,6 +170,7 @@ export function QuickAdd({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    event.stopPropagation();
     const { key } = event;
 
     if (key === "Escape") {

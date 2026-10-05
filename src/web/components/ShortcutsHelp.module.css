@@ -9,6 +9,10 @@
   box-shadow: 0 40px 80px -30px var(--shade);
 }
 
+.dialog:focus-visible {
+  outline: none;
+}
+
 .dialog::backdrop {
   background: var(--shade);
 }

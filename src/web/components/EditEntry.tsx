@@ -56,6 +56,7 @@ export function EditEntry({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    event.stopPropagation();
     if (event.key === "Escape") {
       event.preventDefault();
       onCancel();

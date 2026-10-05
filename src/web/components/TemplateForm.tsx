@@ -61,6 +61,7 @@ export function TemplateForm({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
+    event.stopPropagation();
     if (event.key === "Escape") {
       event.preventDefault();
       onCancel();
