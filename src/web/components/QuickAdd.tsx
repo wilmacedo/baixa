@@ -1,27 +1,23 @@
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
-import { type CategorizedExpense, detectCategory } from "../../shared/category";
-import { addDays, daysBetween } from "../../shared/dates";
-import { formatCents, parseRaw, toRaw } from "../../shared/money";
+import type { CategorizedExpense } from "../../shared/category";
+import { formatCents } from "../../shared/money";
 import type { Today } from "../../shared/months";
 import { suggestCompletion } from "../../shared/suggest";
 import {
   CATEGORIES,
-  type Category,
   type Expense,
   type ExpenseInput,
 } from "../../shared/types";
 import { captureFlight, type FlightSource } from "../fly-value";
-import { CATEGORY_HOTKEYS, CATEGORY_LABELS, dateLabel } from "../format";
+import { CATEGORY_HOTKEYS, dateLabel } from "../format";
+import { useExpenseForm } from "../use-expense-form";
 import { useShake } from "../use-shake";
 import { AmountField } from "./AmountField";
 import { CategoryChips } from "./CategoryChips";
 import { DateStepper } from "./DateStepper";
 import styles from "./QuickAdd.module.css";
 
-const MAX_DAYS_BACK = 60;
-
 type Field = "amount" | "description" | "category" | "date";
-type Problem = "amount" | "category" | null;
 
 interface QuickAddProps {
   today: Today;
@@ -37,28 +33,16 @@ interface QuickAddProps {
   onCancel: () => void;
 }
 
-const capitalize = (text: string) =>
-  text.charAt(0).toUpperCase() + text.slice(1);
-
 export function QuickAdd({
   today,
   size,
   history,
-  initialRaw = "",
+  initialRaw,
   editing,
   onSave,
   onCancel,
 }: QuickAddProps) {
-  const todayIso = `${today.month}-${String(today.day).padStart(2, "0")}`;
-  const [raw, setRaw] = useState(
-    editing ? toRaw(editing.amountCents) : initialRaw,
-  );
-  const [description, setDescription] = useState(editing?.description ?? "");
-  const [category, setCategory] = useState<Category | null>(
-    editing?.category ?? null,
-  );
-  const [date, setDate] = useState(editing?.spentOn ?? todayIso);
-  const [problem, setProblem] = useState<Problem>(null);
+  const form = useExpenseForm({ today, history, initialRaw, editing });
   const [field, setField] = useState<Field>("amount");
 
   const amountRef = useRef<HTMLInputElement>(null);
@@ -70,11 +54,9 @@ export function QuickAdd({
 
   useEffect(() => amountRef.current?.focus(), []);
 
-  const detected = category ? null : detectCategory(description, history);
-  const shown = category ?? detected;
+  const { problem, detected, description } = form;
   const completion =
     field === "description" ? suggestCompletion(description, history) : "";
-  const earliest = addDays(todayIso, -MAX_DAYS_BACK);
 
   const hint =
     problem === "amount"
@@ -98,57 +80,30 @@ export function QuickAdd({
   };
 
   const save = (typed: string = description) => {
-    const amountCents = parseRaw(raw);
-    if (amountCents <= 0) {
-      setProblem("amount");
-      shake.shake();
-      focusField("amount");
-      return;
-    }
-
-    const resolved = category ?? detectCategory(typed, history);
-    if (!resolved) {
-      setProblem("category");
-      focusField("category");
+    const result = form.validate(typed);
+    if ("problem" in result) {
+      form.setProblem(result.problem);
+      if (result.problem === "amount") shake.shake();
+      focusField(result.problem);
       return;
     }
 
     const flight =
       !editing && numberRef.current
-        ? captureFlight(numberRef.current, formatCents(amountCents))
+        ? captureFlight(
+            numberRef.current,
+            formatCents(result.input.amountCents),
+          )
         : null;
-    onSave(
-      {
-        description: capitalize(typed.trim() || CATEGORY_LABELS[resolved]),
-        amountCents,
-        category: resolved,
-        spentOn: date,
-      },
-      flight,
-      editing?.id ?? null,
-    );
-  };
-
-  const moveDate = (days: number) => {
-    const next = addDays(date, days);
-    if (next >= earliest && next <= todayIso) setDate(next);
-  };
-
-  const cycleCategory = (step: number) => {
-    const current = shown ? CATEGORIES.indexOf(shown) : -1;
-    const next =
-      current < 0
-        ? 0
-        : (current + step + CATEGORIES.length) % CATEGORIES.length;
-    setCategory(CATEGORIES[next] ?? null);
-    setProblem(null);
+    onSave(result.input, flight, editing?.id ?? null);
   };
 
   const handleEnter = () => {
     if (field === "amount") {
-      if (parseRaw(raw) > 0) focusField("description");
-      else {
-        setProblem("amount");
+      if (form.amountCents > 0) {
+        focusField("description");
+      } else {
+        form.setProblem("amount");
         shake.shake();
       }
       return;
@@ -156,12 +111,13 @@ export function QuickAdd({
 
     if (field === "description") {
       const completed = description + completion;
-      if (completion) setDescription(completed);
-      if (category ?? detectCategory(completed, history)) {
-        save(completed);
-      } else {
-        setProblem("category");
+      if (completion) form.changeDescription(completed);
+      const result = form.validate(completed);
+      if ("problem" in result && result.problem === "category") {
+        form.setProblem("category");
         focusField("category");
+      } else {
+        save(completed);
       }
       return;
     }
@@ -194,7 +150,7 @@ export function QuickAdd({
       descriptionRef.current?.selectionStart === description.length
     ) {
       if (key === "ArrowRight") event.preventDefault();
-      setDescription(description + completion);
+      form.changeDescription(description + completion);
       return;
     }
 
@@ -208,11 +164,10 @@ export function QuickAdd({
       const picked = hotkey ?? numbered;
       if (picked) {
         event.preventDefault();
-        setCategory(picked);
-        setProblem(null);
+        form.pickCategory(picked);
       } else if (key === "ArrowRight" || key === "ArrowLeft") {
         event.preventDefault();
-        cycleCategory(key === "ArrowRight" ? 1 : -1);
+        form.cycleCategory(key === "ArrowRight" ? 1 : -1);
       }
       return;
     }
@@ -220,13 +175,13 @@ export function QuickAdd({
     if (field === "date") {
       if (key === "ArrowLeft" || key === "ArrowDown") {
         event.preventDefault();
-        moveDate(-1);
+        form.moveDate(-1);
       } else if (key === "ArrowRight" || key === "ArrowUp") {
         event.preventDefault();
-        moveDate(1);
+        form.moveDate(1);
       } else if (key.toLowerCase() === "h") {
         event.preventDefault();
-        setDate(todayIso);
+        form.setDate(form.todayIso);
       }
     }
   };
@@ -255,11 +210,8 @@ export function QuickAdd({
 
       <div className={styles.amount}>
         <AmountField
-          raw={raw}
-          onChange={(next) => {
-            setRaw(next);
-            setProblem(null);
-          }}
+          raw={form.raw}
+          onChange={form.changeRaw}
           size={size}
           label="Valor do gasto"
           field="amount"
@@ -285,10 +237,7 @@ export function QuickAdd({
               autoComplete="off"
               placeholder="ex.: farmácia"
               value={description}
-              onChange={(event) => {
-                setDescription(event.target.value);
-                setProblem(null);
-              }}
+              onChange={(event) => form.changeDescription(event.target.value)}
               onFocus={() => setField("description")}
             />
           </span>
@@ -304,13 +253,10 @@ export function QuickAdd({
           </span>
           <CategoryChips
             groupRef={categoryRef}
-            selected={category}
+            selected={form.category}
             suggested={detected}
             focused={field === "category"}
-            onPick={(picked) => {
-              setCategory(picked);
-              setProblem(null);
-            }}
+            onPick={form.pickCategory}
             onFocus={() => setField("category")}
           />
         </div>
@@ -319,11 +265,11 @@ export function QuickAdd({
           <span className={styles.label}>data</span>
           <DateStepper
             stepperRef={dateRef}
-            label={dateLabel(date, todayIso)}
-            canGoForward={daysBetween(date, todayIso) > 0}
+            label={dateLabel(form.date, form.todayIso)}
+            canGoForward={form.canGoForward}
             focused={field === "date"}
-            onPrevious={() => moveDate(-1)}
-            onNext={() => moveDate(1)}
+            onPrevious={() => form.moveDate(-1)}
+            onNext={() => form.moveDate(1)}
             onFocus={() => setField("date")}
           />
         </div>
