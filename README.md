@@ -51,7 +51,7 @@ The app ships as a single container. There is no login, so keep it reachable onl
 docker compose up -d --build
 ```
 
-The container publishes port `3000` on all host interfaces, so it is reachable from the LAN and, on a machine running Tailscale, from the tailnet at `http://<host>:3000`. Do not forward the port on your router or use `tailscale funnel`, which would expose it to the internet.
+The container publishes port `8080` on all host interfaces, so it is reachable from the LAN and, on a machine running Tailscale, from the tailnet at `http://<host>:8080`. Do not forward the port on your router or use `tailscale funnel`, which would expose it to the internet.
 
 The data lives in the `baixa-data` Docker volume, in a SQLite file at `/data/baixa.db`.
 
