@@ -80,6 +80,10 @@
   border-color: var(--ink);
 }
 
+.description:focus-visible {
+  outline: none;
+}
+
 .problem {
   min-height: 14px;
   padding: 0 20px;
