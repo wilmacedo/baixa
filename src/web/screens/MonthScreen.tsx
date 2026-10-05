@@ -466,6 +466,7 @@ export function MonthScreen({
             failedIds={data.failedEntries}
             tabbableId={tabbableBill}
             dimmed={covered}
+            loading={loading}
             onToggleShowPaid={(g) => {
               settling.clear();
               setShowPaid((current) => ({ ...current, [g]: !current[g] }));
@@ -555,6 +556,7 @@ export function MonthScreen({
             <GroupColumn
               key={group}
               compact
+              loading={loading}
               group={group}
               bills={groups[group]}
               today={today}

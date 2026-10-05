@@ -6,6 +6,7 @@ import type { Group } from "../../shared/types";
 import { isBillHidden } from "../bill-visibility";
 import { GROUP_LABELS, plural, todayMarker } from "../format";
 import { BillRow } from "./BillRow";
+import { BillRowSkeleton } from "./BillRowSkeleton";
 import styles from "./GroupColumn.module.css";
 import { Odometer } from "./Odometer";
 
@@ -22,6 +23,7 @@ interface GroupColumnProps {
   tabbableId: string | null;
   compact?: boolean;
   dimmed?: boolean;
+  loading?: boolean;
   onToggleShowPaid: (group: Group) => void;
   onHover: (group: Group, hovering: boolean) => void;
   onToggle: (templateId: string) => void;
@@ -49,6 +51,7 @@ export function GroupColumn({
   tabbableId,
   compact = false,
   dimmed = false,
+  loading = false,
   onToggleShowPaid,
   onHover,
   onToggle,
@@ -111,11 +114,15 @@ export function GroupColumn({
           <Odometer cents={totals.pendingCents} delay={120} />
         </span>
         <span className={styles.summary} data-late={totals.lateCount > 0}>
-          {summary}
+          {loading ? "" : summary}
         </span>
       </header>
 
       <ul className={styles.list}>
+        {loading &&
+          [0, 1, 2, 3].map((index) => (
+            <BillRowSkeleton key={index} compact={compact} />
+          ))}
         {bills.map((bill) => (
           <Fragment key={bill.templateId}>
             {markerBefore === bill && <TodayMarker today={today} />}
@@ -137,9 +144,12 @@ export function GroupColumn({
         {markerAtEnd && <TodayMarker today={today} />}
       </ul>
 
-      {totals.pendingCount === 0 && !showPaid && visible.length === 0 && (
-        <p className={styles.done}>Tudo pago neste grupo.</p>
-      )}
+      {!loading &&
+        totals.pendingCount === 0 &&
+        !showPaid &&
+        visible.length === 0 && (
+          <p className={styles.done}>Tudo pago neste grupo.</p>
+        )}
 
       {totals.paidCount > 0 && (
         <button

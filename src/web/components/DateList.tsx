@@ -3,6 +3,7 @@ import type { MonthKey } from "../../shared/months";
 import type { DateBucket } from "../date-buckets";
 import { GROUP_LABELS, monthName } from "../format";
 import { BillRow } from "./BillRow";
+import { BillRowSkeleton } from "./BillRowSkeleton";
 import styles from "./DateList.module.css";
 
 interface DateListProps {
@@ -40,6 +41,13 @@ export function DateList({
 
   return (
     <section aria-label="Contas por data" className={styles.list}>
+      {loading && (
+        <ul className={styles.items}>
+          {[0, 1, 2, 3, 4].map((index) => (
+            <BillRowSkeleton key={index} compact />
+          ))}
+        </ul>
+      )}
       {buckets.map((bucket) => (
         <div key={bucket.id}>
           {bucket.bills.some((bill) => !hiddenIds.has(bill.templateId)) && (
