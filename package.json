@@ -20,6 +20,7 @@
     "seed": "tsx scripts/seed-demo.ts",
     "backup": "tsx scripts/backup.ts",
     "import-sheet": "tsx scripts/import-sheet.ts",
+    "chat:eval": "tsx scripts/chat-eval.ts",
     "test:e2e": "pnpm build:web && playwright test"
   },
   "devDependencies": {
