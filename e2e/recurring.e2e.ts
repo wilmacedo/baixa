@@ -59,13 +59,30 @@ test("validates the form before saving", async ({ page, app }) => {
   await expect(page.getByRole("alert")).toHaveText("Dê um nome para a conta.");
 
   await page.getByPlaceholder("ex.: Academia").fill("Aluguel");
-  await page.getByRole("button", { name: "salvar" }).click();
-  await expect(page.getByRole("alert")).toHaveText("Digite o valor padrão.");
-
   await page.getByPlaceholder("0,00").pressSequentially("1800");
   await page.getByRole("button", { name: "salvar" }).click();
   await expect(page.getByRole("alert")).toHaveText("O dia vai de 1 a 31.");
   expect(app.templates.list()).toEqual([]);
+});
+
+test("a bill can be saved without a default amount", async ({ page, app }) => {
+  await page.goto(app.url);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "outubro" }),
+  ).toBeVisible();
+  await page.keyboard.press("r");
+  await page
+    .getByRole("region", { name: "Cartões" })
+    .getByRole("button", { name: "nova conta" })
+    .click();
+
+  await page.getByPlaceholder("ex.: Academia").fill("Cartão B");
+  await page.getByLabel("dia").fill("14");
+  await page.getByRole("button", { name: "salvar" }).click();
+
+  await expect
+    .poll(() => app.templates.list())
+    .toMatchObject([{ name: "Cartão B", amountCents: 0, group: "cards" }]);
 });
 
 test("deactivating a bill removes it from the next months", async ({
