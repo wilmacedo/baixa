@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   billsByGroup,
   buildBills,
@@ -6,6 +6,7 @@ import {
   paymentDate,
   summarize,
 } from "../../shared/ledger";
+import { formatCents } from "../../shared/money";
 import type { Today } from "../../shared/months";
 import { GROUPS, type Group } from "../../shared/types";
 import { ExpenseColumn } from "../components/ExpenseColumn";
@@ -14,18 +15,25 @@ import { MonthNav } from "../components/MonthNav";
 import { MonthSummary } from "../components/MonthSummary";
 import { useMonth } from "../use-month";
 import type { useMonthNavigation } from "../use-month-navigation";
+import { useSettling } from "../use-settling";
 import styles from "./MonthScreen.module.css";
 
 interface MonthScreenProps {
   navigation: ReturnType<typeof useMonthNavigation>;
   today: Today;
   width: number;
+  announce: (text: string, undo?: () => unknown) => void;
 }
 
 const EXPENSE_PREFIX = "av:";
 const noop = () => {};
 
-export function MonthScreen({ navigation, today, width }: MonthScreenProps) {
+export function MonthScreen({
+  navigation,
+  today,
+  width,
+  announce,
+}: MonthScreenProps) {
   const { month } = navigation;
   const data = useMonth(month, today.month);
   const loading = data.status === "loading";
@@ -39,6 +47,11 @@ export function MonthScreen({ navigation, today, width }: MonthScreenProps) {
   const totals = useMemo(() => summarize(bills), [bills]);
   const lateBills = bills.filter((bill) => bill.status === "late");
   const expenseCents = data.expenses.reduce((sum, e) => sum + e.amountCents, 0);
+
+  const settling = useSettling();
+  const clearSettling = settling.clear;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the held rows must be dropped whenever another month is shown
+  useEffect(() => clearSettling(), [month, clearSettling]);
 
   const [showPaid, setShowPaid] = useState<Record<Group, boolean>>({
     fixed: false,
@@ -54,11 +67,36 @@ export function MonthScreen({ navigation, today, width }: MonthScreenProps) {
   const toggleBill = (templateId: string) => {
     const bill = bills.find((b) => b.templateId === templateId);
     if (!bill) return;
-    data.saveEntry({
+
+    const paidAt = bill.paidAt ? null : paymentDate(month, bill.dueDay, today);
+    const previous = {
       templateId,
       amountCents: bill.amountCents,
-      paidAt: bill.paidAt ? null : paymentDate(month, bill.dueDay, today),
-    });
+      paidAt: bill.paidAt,
+    };
+
+    if (paidAt) settling.hold(templateId, bill.group);
+    else settling.drop(templateId);
+    data.saveEntry({ ...previous, paidAt });
+
+    announce(
+      paidAt
+        ? `${bill.name} paga · R$ ${formatCents(bill.amountCents)}`
+        : `${bill.name} voltou para pendente`,
+      () => {
+        settling.clear();
+        return data.saveEntry(previous);
+      },
+    );
+  };
+
+  const deleteExpense = (id: string) => {
+    const expense = data.expenses.find((e) => e.id === id);
+    if (!expense) return;
+
+    const { id: _id, ...input } = expense;
+    data.deleteExpense(id);
+    announce(`${expense.description} excluído`, () => data.addExpense(input));
   };
 
   const columns =
@@ -107,15 +145,16 @@ export function MonthScreen({ navigation, today, width }: MonthScreenProps) {
             today={today}
             isCurrentMonth={isCurrentMonth}
             showPaid={showPaid[group]}
-            settling={new Set()}
+            settling={settling.settling}
             editingId={null}
             focusedId={focusedBill}
             failedIds={data.failedEntries}
             tabbableId={null}
-            onToggleShowPaid={(g) =>
-              setShowPaid((current) => ({ ...current, [g]: !current[g] }))
-            }
-            onHover={noop}
+            onToggleShowPaid={(g) => {
+              settling.clear();
+              setShowPaid((current) => ({ ...current, [g]: !current[g] }));
+            }}
+            onHover={settling.onHover}
             onToggle={toggleBill}
             onEdit={noop}
             onFocus={setFocus}
@@ -130,7 +169,7 @@ export function MonthScreen({ navigation, today, width }: MonthScreenProps) {
           tabbableId={null}
           onNew={noop}
           onEdit={noop}
-          onDelete={(id) => data.deleteExpense(id)}
+          onDelete={deleteExpense}
           onFocus={(id) => setFocus(`${EXPENSE_PREFIX}${id}`)}
         />
       </div>
