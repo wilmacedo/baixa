@@ -29,6 +29,29 @@ const lunch = {
 const expensesOf = async (month: string) =>
   (await (await send("GET", `/api/months/${month}`)).json()).expenses;
 
+describe("GET /api/expenses/history", () => {
+  it("lists the descriptions and categories of past expenses, oldest first", async () => {
+    await send("POST", "/api/expenses", {
+      ...lunch,
+      description: "First",
+      spentOn: "2026-09-01",
+    });
+    await send("POST", "/api/expenses", {
+      ...lunch,
+      description: "Second",
+      category: "health",
+    });
+
+    const res = await send("GET", "/api/expenses/history");
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual([
+      { description: "First", category: "leisure" },
+      { description: "Second", category: "health" },
+    ]);
+  });
+});
+
 describe("POST /api/expenses", () => {
   it("creates an expense that shows up in its month", async () => {
     const res = await send("POST", "/api/expenses", lunch);

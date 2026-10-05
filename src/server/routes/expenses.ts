@@ -3,8 +3,12 @@ import type { Expenses } from "../expenses";
 import { notFound, readBody } from "../http";
 import { expenseInput } from "../schemas";
 
+const HISTORY_LIMIT = 1000;
+
 export function expenseRoutes(expenses: Expenses) {
   const routes = new Hono();
+
+  routes.get("/history", (c) => c.json(expenses.history(HISTORY_LIMIT)));
 
   routes.post("/", async (c) => {
     const input = await readBody(c, expenseInput);
