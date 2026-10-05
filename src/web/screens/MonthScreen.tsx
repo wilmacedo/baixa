@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { CategorizedExpense } from "../../shared/category";
 import {
   billsByGroup,
   buildBills,
@@ -8,31 +9,59 @@ import {
 } from "../../shared/ledger";
 import { formatCents } from "../../shared/money";
 import type { Today } from "../../shared/months";
-import { GROUPS, type Group } from "../../shared/types";
+import {
+  type Expense,
+  type ExpenseInput,
+  GROUPS,
+  type Group,
+} from "../../shared/types";
 import { ExpenseColumn } from "../components/ExpenseColumn";
 import { GroupColumn } from "../components/GroupColumn";
 import { MonthNav } from "../components/MonthNav";
 import { MonthSummary } from "../components/MonthSummary";
+import { QuickAdd } from "../components/QuickAdd";
+import { type FlightSource, flyValue } from "../fly-value";
+import { CATEGORY_LABELS } from "../format";
+import { heroSize } from "../layout";
+import { newId } from "../new-id";
 import { useMonth } from "../use-month";
 import type { useMonthNavigation } from "../use-month-navigation";
 import { useSettling } from "../use-settling";
 import styles from "./MonthScreen.module.css";
+
+export interface QuickAddRequest {
+  initialRaw?: string;
+  editing?: Expense;
+}
 
 interface MonthScreenProps {
   navigation: ReturnType<typeof useMonthNavigation>;
   today: Today;
   width: number;
   announce: (text: string, undo?: () => unknown) => void;
+  history: readonly CategorizedExpense[];
+  onHistoryChanged: () => void;
+  quickAdd: QuickAddRequest | null;
+  onOpenQuickAdd: (request?: QuickAddRequest) => void;
+  onCloseQuickAdd: () => void;
 }
 
 const EXPENSE_PREFIX = "av:";
+const FLASH_MS = 1300;
 const noop = () => {};
+
+const toInput = ({ id: _id, ...input }: Expense): ExpenseInput => input;
 
 export function MonthScreen({
   navigation,
   today,
   width,
   announce,
+  history,
+  onHistoryChanged,
+  quickAdd,
+  onOpenQuickAdd,
+  onCloseQuickAdd,
 }: MonthScreenProps) {
   const { month } = navigation;
   const data = useMonth(month, today.month);
@@ -59,10 +88,15 @@ export function MonthScreen({
     cards: false,
   });
   const [focus, setFocus] = useState<string | null>(null);
+  const [flashId, setFlashId] = useState<string | null>(null);
+  const flashTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(flashTimer.current), []);
+
   const focusedExpense = focus?.startsWith(EXPENSE_PREFIX)
     ? focus.slice(EXPENSE_PREFIX.length)
     : null;
   const focusedBill = focus && !focusedExpense ? focus : null;
+  const covered = quickAdd !== null;
 
   const toggleBill = (templateId: string) => {
     const bill = bills.find((b) => b.templateId === templateId);
@@ -94,9 +128,61 @@ export function MonthScreen({
     const expense = data.expenses.find((e) => e.id === id);
     if (!expense) return;
 
-    const { id: _id, ...input } = expense;
     data.deleteExpense(id);
-    announce(`${expense.description} excluído`, () => data.addExpense(input));
+    announce(`${expense.description} excluído`, () =>
+      data.addExpense(toInput(expense), expense.id),
+    );
+    onHistoryChanged();
+  };
+
+  const flash = (id: string) => {
+    setFlashId(id);
+    window.clearTimeout(flashTimer.current);
+    flashTimer.current = window.setTimeout(() => setFlashId(null), FLASH_MS);
+  };
+
+  const flyToRow = (id: string, flight: FlightSource | null) => {
+    if (!flight) return;
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const target = document.querySelector<HTMLElement>(
+          `[data-av="${id}"] [data-role="amount"]`,
+        );
+        if (target) flyValue(flight, target);
+      }),
+    );
+  };
+
+  const saveExpense = async (
+    input: ExpenseInput,
+    flight: FlightSource | null,
+    editingId: string | null,
+  ) => {
+    onCloseQuickAdd();
+    const summary = `${input.description} · R$ ${formatCents(input.amountCents)} em ${CATEGORY_LABELS[input.category]}`;
+
+    if (editingId) {
+      const previous = data.expenses.find((e) => e.id === editingId);
+      await data.replaceExpense(editingId, input);
+      flash(editingId);
+      announce(
+        summary,
+        previous && (() => data.replaceExpense(previous.id, toInput(previous))),
+      );
+      onHistoryChanged();
+      return;
+    }
+
+    const id = newId();
+    const created = await data.addExpense(input, id);
+    if (!created) return;
+
+    const targetMonth = input.spentOn.slice(0, 7);
+    if (targetMonth === month) flyToRow(id, flight);
+    else navigation.goTo(targetMonth);
+    flash(id);
+    announce(summary, () => data.deleteExpense(id));
+    onHistoryChanged();
   };
 
   const columns =
@@ -107,7 +193,12 @@ export function MonthScreen({
   return (
     <div className={styles.screen}>
       <div className={styles.panels}>
-        <div className={styles.panel} data-active={true}>
+        <div
+          className={styles.panel}
+          data-active={!covered}
+          inert={covered}
+          aria-hidden={covered}
+        >
           <MonthSummary
             nav={
               <MonthNav
@@ -131,6 +222,20 @@ export function MonthScreen({
             onShowLate={() => setFocus(lateBills[0]?.templateId ?? null)}
           />
         </div>
+        {quickAdd && (
+          <div className={styles.panel} data-active={true}>
+            <QuickAdd
+              key={quickAdd.editing?.id ?? "new"}
+              today={today}
+              size={heroSize(width)}
+              history={history}
+              initialRaw={quickAdd.initialRaw}
+              editing={quickAdd.editing}
+              onSave={saveExpense}
+              onCancel={onCloseQuickAdd}
+            />
+          </div>
+        )}
       </div>
 
       <div
@@ -150,6 +255,7 @@ export function MonthScreen({
             focusedId={focusedBill}
             failedIds={data.failedEntries}
             tabbableId={null}
+            dimmed={covered}
             onToggleShowPaid={(g) => {
               settling.clear();
               setShowPaid((current) => ({ ...current, [g]: !current[g] }));
@@ -165,10 +271,13 @@ export function MonthScreen({
           expenses={data.expenses}
           loading={loading}
           focusedId={focusedExpense}
-          flashId={null}
+          flashId={flashId}
           tabbableId={null}
-          onNew={noop}
-          onEdit={noop}
+          onNew={() => onOpenQuickAdd()}
+          onEdit={(id) => {
+            const expense = data.expenses.find((e) => e.id === id);
+            if (expense) onOpenQuickAdd({ editing: expense });
+          }}
           onDelete={deleteExpense}
           onFocus={(id) => setFocus(`${EXPENSE_PREFIX}${id}`)}
         />

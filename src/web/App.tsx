@@ -2,7 +2,8 @@ import { useCallback, useState } from "react";
 import styles from "./App.module.css";
 import { Header, type Screen } from "./components/Header";
 import { Toast } from "./components/Toast";
-import { MonthScreen } from "./screens/MonthScreen";
+import { MonthScreen, type QuickAddRequest } from "./screens/MonthScreen";
+import { useExpenseHistory } from "./use-expense-history";
 import { useMonthNavigation } from "./use-month-navigation";
 import { useTheme } from "./use-theme";
 import { useToast } from "./use-toast";
@@ -20,6 +21,14 @@ export function App() {
   const [screen, setScreen] = useState<Screen>("month");
   const toast = useToast();
   const undo = useUndo();
+  const history = useExpenseHistory();
+  const [quickAdd, setQuickAdd] = useState<QuickAddRequest | null>(null);
+
+  const openQuickAdd = useCallback((request: QuickAddRequest = {}) => {
+    setScreen("month");
+    setQuickAdd(request);
+  }, []);
+  const closeQuickAdd = useCallback(() => setQuickAdd(null), []);
 
   const announce = useCallback(
     (text: string, undoAction?: () => unknown) => {
@@ -44,7 +53,7 @@ export function App() {
         onScreen={setScreen}
         onToggleTheme={toggle}
         onHelp={noop}
-        onNewExpense={noop}
+        onNewExpense={() => openQuickAdd()}
       />
       {screen === "month" && (
         <MonthScreen
@@ -52,6 +61,11 @@ export function App() {
           today={today}
           width={width}
           announce={announce}
+          history={history.history}
+          onHistoryChanged={history.refresh}
+          quickAdd={quickAdd}
+          onOpenQuickAdd={openQuickAdd}
+          onCloseQuickAdd={closeQuickAdd}
         />
       )}
       <Toast toast={toast.toast} onUndo={performUndo} />
