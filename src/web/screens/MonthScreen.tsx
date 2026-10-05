@@ -16,7 +16,7 @@ import {
   type Group,
 } from "../../shared/types";
 import { isBillHidden } from "../bill-visibility";
-import { EditEntry, type EntryEdit } from "../components/EditEntry";
+import { EditEntry } from "../components/EditEntry";
 import { ExpenseColumn } from "../components/ExpenseColumn";
 import { GroupColumn } from "../components/GroupColumn";
 import { MonthNav } from "../components/MonthNav";
@@ -28,6 +28,7 @@ import { CATEGORY_LABELS, monthName } from "../format";
 import { heroSize } from "../layout";
 import { newId } from "../new-id";
 import { isEditable } from "../shortcuts";
+import type { EntryEdit } from "../use-entry-edit";
 import { useMonth } from "../use-month";
 import type { useMonthNavigation } from "../use-month-navigation";
 import { useSettling } from "../use-settling";

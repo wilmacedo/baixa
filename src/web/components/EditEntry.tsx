@@ -1,18 +1,13 @@
-import { type KeyboardEvent, useEffect, useRef, useState } from "react";
-import { type Bill, paymentDate } from "../../shared/ledger";
-import { formatCents, parseRaw, toRaw } from "../../shared/money";
-import { addMonths, type MonthKey, type Today } from "../../shared/months";
-import { GROUP_LABELS, monthName, paidOn } from "../format";
+import { type KeyboardEvent, useEffect, useRef } from "react";
+import type { Bill } from "../../shared/ledger";
+import { formatCents } from "../../shared/money";
+import type { MonthKey, Today } from "../../shared/months";
+import { GROUP_LABELS, monthName } from "../format";
+import { type EntryEdit, useEntryEdit } from "../use-entry-edit";
 import { useShake } from "../use-shake";
 import { AmountField } from "./AmountField";
 import styles from "./EditEntry.module.css";
 import { SegmentedControl } from "./SegmentedControl";
-
-export interface EntryEdit {
-  amountCents: number;
-  paid: boolean;
-  applyToTemplate: boolean;
-}
 
 interface EditEntryProps {
   bill: Bill;
@@ -31,28 +26,20 @@ export function EditEntry({
   onSave,
   onCancel,
 }: EditEntryProps) {
-  const [raw, setRaw] = useState(toRaw(bill.amountCents));
-  const [paid, setPaid] = useState(bill.status === "paid");
-  const [applyToTemplate, setApplyToTemplate] = useState(false);
+  const edit = useEntryEdit({ bill, month, today });
   const amountRef = useRef<HTMLInputElement>(null);
   const shake = useShake();
 
   useEffect(() => amountRef.current?.focus(), []);
 
-  const amountCents = parseRaw(raw);
-  const delta = amountCents - bill.defaultCents;
-  const paidDate = paidOn(
-    bill.paidAt ?? paymentDate(month, bill.dueDay, today),
-  );
-  const nextMonth = monthName(addMonths(month, 1));
-
   const save = () => {
-    if (amountCents <= 0) {
+    const result = edit.result();
+    if (!result) {
       shake.shake();
       amountRef.current?.focus();
       return;
     }
-    onSave({ amountCents, paid, applyToTemplate });
+    onSave(result);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
@@ -93,8 +80,8 @@ export function EditEntry({
 
       <div className={styles.amount}>
         <AmountField
-          raw={raw}
-          onChange={setRaw}
+          raw={edit.raw}
+          onChange={edit.setRaw}
           size={size}
           label="Valor deste mês"
           inputRef={amountRef}
@@ -109,42 +96,42 @@ export function EditEntry({
             className={styles.diff}
             style={{
               color:
-                delta > 0
+                edit.delta > 0
                   ? "var(--red)"
-                  : delta < 0
+                  : edit.delta < 0
                     ? "var(--ink)"
                     : "var(--graphite)",
             }}
           >
-            {delta === 0
+            {edit.delta === 0
               ? "· igual ao padrão"
-              : `· ${delta > 0 ? "+" : "−"}${formatCents(Math.abs(delta))} neste mês`}
+              : `· ${edit.delta > 0 ? "+" : "−"}${formatCents(Math.abs(edit.delta))} neste mês`}
           </span>
         </span>
         <button
           type="button"
           className={styles.reset}
-          disabled={delta === 0}
-          onClick={() => setRaw(toRaw(bill.defaultCents))}
+          disabled={edit.delta === 0}
+          onClick={edit.reset}
         >
           voltar ao padrão
         </button>
         <SegmentedControl
           label="Situação"
-          value={paid ? "paid" : "pending"}
-          onChange={(value) => setPaid(value === "paid")}
+          value={edit.paid ? "paid" : "pending"}
+          onChange={(value) => edit.setPaid(value === "paid")}
           options={[
             { value: "pending", label: "pendente", tone: "ink" },
-            { value: "paid", label: `pago ${paidDate}`, tone: "graphite" },
+            { value: "paid", label: `pago ${edit.paidDate}`, tone: "graphite" },
           ]}
         />
         <label className={styles.apply}>
           <input
             type="checkbox"
-            checked={applyToTemplate}
-            onChange={(event) => setApplyToTemplate(event.target.checked)}
+            checked={edit.applyToTemplate}
+            onChange={(event) => edit.setApplyToTemplate(event.target.checked)}
           />
-          <span>usar como novo padrão a partir de {nextMonth}</span>
+          <span>usar como novo padrão a partir de {edit.nextMonth}</span>
         </label>
         <span className={styles.grow} />
         <button type="button" className={styles.cancel} onClick={onCancel}>
