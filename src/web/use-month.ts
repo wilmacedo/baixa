@@ -47,8 +47,9 @@ export function useMonth(month: MonthKey, currentMonth: MonthKey) {
 
   const addExpense = async (
     input: ExpenseInput,
+    id: string = newId(),
   ): Promise<Expense | undefined> => {
-    const expense: Expense = { id: newId(), ...input };
+    const expense: Expense = { id, ...input };
     if (stillShowing() && belongsHere(input.spentOn)) {
       dispatch({ type: "expenseAdded", expense });
     }
