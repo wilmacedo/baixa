@@ -393,7 +393,7 @@
   padding: 0 18px 12px;
   flex: none;
   font:
-    500 10px / 1 "Martian Mono",
+    500 10px / 1.5 "Martian Mono",
     monospace;
   color: var(--graphite);
 }

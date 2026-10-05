@@ -260,8 +260,7 @@ export function ChatPanel({
         </form>
         {mode === "desktop" && (
           <p className={styles.hint}>
-            enter envia · shift enter quebra a linha · ↑ repete a última · esc
-            fecha
+            enter envia · shift+enter quebra · ↑ última · esc fecha
           </p>
         )}
       </div>
