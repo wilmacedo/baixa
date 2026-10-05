@@ -29,10 +29,25 @@ export function globalShortcut(event: KeyInput): GlobalAction | null {
   return /^\d$/.test(key) ? { type: "newExpense", digit: key } : null;
 }
 
+const NON_TEXT_INPUTS = new Set([
+  "checkbox",
+  "radio",
+  "button",
+  "submit",
+  "reset",
+  "range",
+  "color",
+  "file",
+  "image",
+]);
+
+export function acceptsTyping(tagName: string, type: string): boolean {
+  if (tagName === "TEXTAREA" || tagName === "SELECT") return true;
+  return tagName === "INPUT" && !NON_TEXT_INPUTS.has(type);
+}
+
 export function isEditable(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
-  return (
-    target.isContentEditable ||
-    ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)
-  );
+  const type = target instanceof HTMLInputElement ? target.type : "";
+  return target.isContentEditable || acceptsTyping(target.tagName, type);
 }
