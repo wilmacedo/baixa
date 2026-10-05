@@ -109,6 +109,18 @@ describe("buildPlan entries", () => {
     expect(result.entries[0]?.paidAt).toBe("2026-08-07");
   });
 
+  it("does not create an entry for an explicit zero amount", () => {
+    const result = buildPlan([
+      { month: "2026-08", tab: { bills: [bill("Card")], expenses: [] } },
+      {
+        month: "2026-09",
+        tab: { bills: [bill("Card", { amountCents: 0 })], expenses: [] },
+      },
+    ]);
+
+    expect(result.entries.map((e) => e.month)).toEqual(["2026-08"]);
+  });
+
   it("keeps the first of two bills with the same name in a month", () => {
     const result = buildPlan([
       {

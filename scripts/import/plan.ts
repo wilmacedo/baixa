@@ -145,7 +145,8 @@ export function buildPlan(inputs: readonly TabInput[]): ImportPlan {
       }
       done.add(key);
 
-      const amountCents = bill.amountCents || template.amountCents;
+      const amountCents = bill.amountCents ?? template.amountCents;
+      if (amountCents <= 0) continue;
       const dueDay = Math.min(template.dueDay, 28);
       const paidAt = bill.paid
         ? (bill.paidOn ?? `${month}-${pad(dueDay)}`)
