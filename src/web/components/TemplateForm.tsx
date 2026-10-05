@@ -15,6 +15,7 @@ import {
 } from "../../shared/types";
 import { amountHandlers } from "../amount-handlers";
 import { GROUP_LABELS } from "../format";
+import { Switch } from "./Switch";
 import styles from "./TemplateForm.module.css";
 
 interface TemplateFormProps {
@@ -38,6 +39,7 @@ export function TemplateForm({
   const [chosenGroup, setChosenGroup] = useState<Group>(
     initial?.group ?? group,
   );
+  const [autoPaid, setAutoPaid] = useState(initial?.autoPaid ?? false);
   const [error, setError] = useState("");
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -56,6 +58,7 @@ export function TemplateForm({
       amountCents,
       dueDay,
       group: chosenGroup,
+      autoPaid,
     });
   };
 
@@ -127,6 +130,15 @@ export function TemplateForm({
             ))}
           </select>
         </label>
+      </div>
+
+      <div className={styles.auto}>
+        <Switch
+          checked={autoPaid}
+          label="Débito automático no cartão"
+          onChange={setAutoPaid}
+        />
+        <span>débito automático no cartão · já vem paga todo mês</span>
       </div>
 
       {error && (

@@ -20,7 +20,9 @@ export function resolveEntries(
         {
           templateId: template.id,
           amountCents: template.amountCents,
-          paidAt: null,
+          paidAt: template.autoPaid
+            ? `${month}-${String(Math.min(template.dueDay, 28)).padStart(2, "0")}`
+            : null,
         },
       ];
     });

@@ -10,6 +10,7 @@ export const templateInput = z.object({
   amountCents: z.number().int().nonnegative().max(MAX_AMOUNT_CENTS),
   dueDay: z.number().int().min(1).max(31),
   group: z.enum(GROUPS),
+  autoPaid: z.boolean().optional(),
 });
 
 export const templatePatch = templateInput

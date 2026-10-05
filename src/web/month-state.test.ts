@@ -95,6 +95,7 @@ describe("templates", () => {
     dueDay: 10,
     group: "fixed",
     active: true,
+    autoPaid: false,
     position: 1,
   };
 

@@ -16,6 +16,7 @@ export interface PlannedTemplate {
   amountCents: number;
   dueDay: number;
   active: boolean;
+  autoPaid: boolean;
 }
 
 export interface PlannedEntry {
@@ -102,6 +103,11 @@ export function buildPlan(
     }
   }
 
+  const autoPaid = new Set(
+    (model?.bills ?? [])
+      .filter((bill) => bill.group === "charges" && bill.paid)
+      .map(keyOf),
+  );
   const modelAmounts = new Map(
     (model?.bills ?? []).map((bill) => [keyOf(bill), bill.amountCents ?? 0]),
   );
@@ -137,6 +143,7 @@ export function buildPlan(
         : (info.amountCents ?? 0),
       dueDay: info.dueDay ?? 1,
       active: model ? inModel : info.lastMonth === latest,
+      autoPaid: autoPaid.has(key),
     });
   }
   const byKey = new Map(templates.map((t) => [t.key, t]));

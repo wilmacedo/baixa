@@ -15,6 +15,7 @@ const plan: ImportPlan = {
       amountCents: 110000,
       dueDay: 9,
       active: true,
+      autoPaid: false,
     },
     {
       key: "charges:gym",
@@ -23,6 +24,7 @@ const plan: ImportPlan = {
       amountCents: 25000,
       dueDay: 5,
       active: false,
+      autoPaid: true,
     },
   ],
   entries: [

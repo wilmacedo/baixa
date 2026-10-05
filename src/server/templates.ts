@@ -14,6 +14,7 @@ interface TemplateRow {
   due_day: number;
   group: Group;
   active: number;
+  auto_paid: number;
   position: number;
 }
 
@@ -24,25 +25,26 @@ const toTemplate = (row: TemplateRow): Template => ({
   dueDay: row.due_day,
   group: row.group,
   active: row.active === 1,
+  autoPaid: row.auto_paid === 1,
   position: row.position,
 });
 
 export function createTemplates(db: Db) {
   const selectAll = db.prepare(
-    'SELECT id, name, amount_cents, due_day, "group", active, position FROM templates ORDER BY position',
+    'SELECT id, name, amount_cents, due_day, "group", active, auto_paid, position FROM templates ORDER BY position',
   );
   const selectOne = db.prepare(
-    'SELECT id, name, amount_cents, due_day, "group", active, position FROM templates WHERE id = ?',
+    'SELECT id, name, amount_cents, due_day, "group", active, auto_paid, position FROM templates WHERE id = ?',
   );
   const insert = db.prepare(
-    `INSERT INTO templates (id, name, amount_cents, due_day, "group", active, position)
-     VALUES (@id, @name, @amount_cents, @due_day, @group, 1,
+    `INSERT INTO templates (id, name, amount_cents, due_day, "group", active, auto_paid, position)
+     VALUES (@id, @name, @amount_cents, @due_day, @group, 1, @auto_paid,
              (SELECT COALESCE(MAX(position), 0) + 1 FROM templates))`,
   );
   const update = db.prepare(
     `UPDATE templates
      SET name = @name, amount_cents = @amount_cents, due_day = @due_day,
-         "group" = @group, active = @active
+         "group" = @group, active = @active, auto_paid = @auto_paid
      WHERE id = @id`,
   );
 
@@ -64,6 +66,7 @@ export function createTemplates(db: Db) {
         amount_cents: input.amountCents,
         due_day: input.dueDay,
         group: input.group,
+        auto_paid: input.autoPaid ? 1 : 0,
       });
       return get(id) as Template;
     },
@@ -79,6 +82,7 @@ export function createTemplates(db: Db) {
         due_day: next.dueDay,
         group: next.group,
         active: next.active ? 1 : 0,
+        auto_paid: next.autoPaid ? 1 : 0,
       });
       return get(id);
     },

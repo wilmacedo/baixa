@@ -20,6 +20,7 @@ export interface Template {
   dueDay: number;
   group: Group;
   active: boolean;
+  autoPaid: boolean;
   position: number;
 }
 
@@ -42,6 +43,7 @@ export interface TemplateInput {
   amountCents: number;
   dueDay: number;
   group: Group;
+  autoPaid?: boolean;
 }
 
 export type TemplatePatch = Partial<TemplateInput & { active: boolean }>;

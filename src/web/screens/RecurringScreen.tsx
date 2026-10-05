@@ -59,6 +59,7 @@ export function RecurringScreen({
               amountCents: previous.amountCents,
               dueDay: previous.dueDay,
               group: previous.group,
+              autoPaid: previous.autoPaid,
             })),
       );
       return;
@@ -189,6 +190,9 @@ export function RecurringScreen({
                         onClick={() => setEditing({ id: template.id })}
                       >
                         <span className={styles.name}>{template.name}</span>
+                        {template.autoPaid && (
+                          <span className={styles.tag}>automática</span>
+                        )}
                         {!template.active && (
                           <span className={styles.tag}>desativada</span>
                         )}

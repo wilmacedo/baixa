@@ -50,6 +50,9 @@ const MIGRATIONS = [
   DROP TABLE templates;
   ALTER TABLE templates_next RENAME TO templates;
   `,
+  `
+  ALTER TABLE templates ADD COLUMN auto_paid INTEGER NOT NULL DEFAULT 0 CHECK (auto_paid IN (0, 1));
+  `,
 ];
 
 function migrate(db: Db) {

@@ -27,6 +27,16 @@ describe("templates", () => {
     expect(created.id).toMatch(/^[0-9a-f-]{36}$/);
   });
 
+  it("stores the automatic flag, off by default", () => {
+    const manual = templates.create(rent);
+    const auto = templates.create({ ...rent, autoPaid: true });
+
+    expect([manual.autoPaid, auto.autoPaid]).toEqual([false, true]);
+    expect(templates.update(auto.id, { autoPaid: false })?.autoPaid).toBe(
+      false,
+    );
+  });
+
   it("appends new templates at the end of the order", () => {
     templates.create(rent);
     const internet = templates.create({ ...rent, name: "Internet" });

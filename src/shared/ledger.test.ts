@@ -16,6 +16,7 @@ const template = (id: string, overrides: Partial<Template> = {}): Template => ({
   dueDay: 10,
   group: "fixed",
   active: true,
+  autoPaid: false,
   position: 0,
   ...overrides,
 });

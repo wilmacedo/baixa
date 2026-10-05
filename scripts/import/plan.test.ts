@@ -81,6 +81,12 @@ describe("buildPlan with a model tab", () => {
     bills: [
       bill("Rent", { amountCents: 300000 }),
       bill("Card", { group: "cards", amountCents: null }),
+      bill("Stream", {
+        group: "charges",
+        amountCents: 4000,
+        paid: true,
+      }),
+      bill("Tax", { group: "charges", amountCents: 9000 }),
     ],
     expenses: [],
   };
@@ -106,6 +112,12 @@ describe("buildPlan with a model tab", () => {
   it("takes the default amount from the model, empty meaning none", () => {
     expect(template("Rent")?.amountCents).toBe(300000);
     expect(template("Card")?.amountCents).toBe(0);
+  });
+
+  it("marks the paid charges of the model as automatic", () => {
+    expect(template("Stream")?.autoPaid).toBe(true);
+    expect(template("Tax")?.autoPaid).toBe(false);
+    expect(template("Rent")?.autoPaid).toBe(false);
   });
 
   it("keeps only the model bills active", () => {

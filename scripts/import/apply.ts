@@ -32,6 +32,7 @@ export function applyPlan(db: Db, plan: ImportPlan): ImportCounts {
         amountCents: planned.amountCents,
         dueDay: planned.dueDay,
         group: planned.group,
+        autoPaid: planned.autoPaid,
       });
       if (!planned.active) templates.update(created.id, { active: false });
       ids.set(planned.key, created.id);

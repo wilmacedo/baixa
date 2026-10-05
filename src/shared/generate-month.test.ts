@@ -8,6 +8,7 @@ const template = (overrides: Partial<Template> & { id: string }): Template => ({
   dueDay: 10,
   group: "fixed",
   active: true,
+  autoPaid: false,
   position: 0,
   ...overrides,
 });
@@ -32,6 +33,13 @@ describe("resolveEntries", () => {
     const variable = [template({ id: "card", amountCents: 0 })];
     expect(resolveEntries("2026-10", current, variable, [])).toEqual([
       { templateId: "card", amountCents: 0, paidAt: null },
+    ]);
+  });
+
+  it("generates an automatic bill already paid on its due day", () => {
+    const auto = [template({ id: "netflix", dueDay: 12, autoPaid: true })];
+    expect(resolveEntries("2026-11", current, auto, [])).toEqual([
+      { templateId: "netflix", amountCents: 10000, paidAt: "2026-11-12" },
     ]);
   });
 

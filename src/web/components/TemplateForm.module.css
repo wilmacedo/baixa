@@ -106,3 +106,13 @@
     "wght" 640,
     "wdth" 104;
 }
+
+.auto {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font:
+    500 10.5px / 1.3 "Martian Mono",
+    monospace;
+  color: var(--graphite);
+}
