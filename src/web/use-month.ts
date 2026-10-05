@@ -28,7 +28,7 @@ export function useMonth(month: MonthKey, currentMonth: MonthKey) {
     const previous = latest.current.entries.find(
       (e) => e.templateId === entry.templateId,
     );
-    dispatch({ type: "entrySet", entry });
+    if (stillShowing()) dispatch({ type: "entrySet", entry });
     try {
       await api.saveEntry(month, entry);
       return true;
@@ -51,7 +51,7 @@ export function useMonth(month: MonthKey, currentMonth: MonthKey) {
       id: `pending-${crypto.randomUUID()}`,
       ...input,
     };
-    if (belongsHere(input.spentOn)) {
+    if (stillShowing() && belongsHere(input.spentOn)) {
       dispatch({ type: "expenseAdded", expense: temporary });
     }
     try {
@@ -72,11 +72,13 @@ export function useMonth(month: MonthKey, currentMonth: MonthKey) {
     input: ExpenseInput,
   ): Promise<boolean> => {
     const previous = latest.current.expenses.find((e) => e.id === id);
-    dispatch(
-      belongsHere(input.spentOn)
-        ? { type: "expenseSwapped", id, expense: { id, ...input } }
-        : { type: "expenseRemoved", id },
-    );
+    if (stillShowing()) {
+      dispatch(
+        belongsHere(input.spentOn)
+          ? { type: "expenseSwapped", id, expense: { id, ...input } }
+          : { type: "expenseRemoved", id },
+      );
+    }
     try {
       await api.replaceExpense(id, input);
       return true;
@@ -94,7 +96,7 @@ export function useMonth(month: MonthKey, currentMonth: MonthKey) {
 
   const deleteExpense = async (id: string): Promise<boolean> => {
     const previous = latest.current.expenses.find((e) => e.id === id);
-    dispatch({ type: "expenseRemoved", id });
+    if (stillShowing()) dispatch({ type: "expenseRemoved", id });
     try {
       await api.deleteExpense(id);
       return true;
