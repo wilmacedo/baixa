@@ -1,0 +1,70 @@
+.nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.step {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+
+.step:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 1.5px var(--text);
+}
+
+.clip {
+  min-width: 210px;
+  overflow: hidden;
+}
+
+.title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.month {
+  margin: 0;
+  font-size: 30px;
+  font-weight: normal;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variation-settings:
+    "wght" 380,
+    "wdth" 92;
+}
+
+.year {
+  font:
+    500 12px / 1 "Martian Mono",
+    monospace;
+  color: var(--graphite);
+}
+
+.keys {
+  display: flex;
+  gap: 4px;
+  margin-left: 4px;
+}
+
+.back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 10px;
+  margin-left: 8px;
+  border-radius: 4px;
+  background: var(--hl);
+  color: var(--hl-text);
+  font-size: 13px;
+  font-variation-settings: "wght" 620;
+}
